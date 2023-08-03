@@ -88,8 +88,7 @@ async function loadShaders() {
     logMessage("Shader files loaded.")
 }
 
-// Compile the GLSL shader stages and combine them
-// into a shader program.
+// Compile the GLSL shader stages and combine them into a shader program.
 function compileShaders() {
     // Create a shader of type VERTEX_SHADER.
     vs = gl.createShader(gl.VERTEX_SHADER);
