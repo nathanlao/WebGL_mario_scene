@@ -5,6 +5,15 @@ var canvas;
 var angle;
 var angularSpeed;
 
+// Shader handles
+var vs;
+var fs;
+var prog;
+
+// Shader sources
+var vs_source;
+var fs_source;
+
 async function setup() {
 
     initializeContext();
@@ -13,8 +22,8 @@ async function setup() {
 
     // createBuffers();
 
-    // await loadShaders();
-    // compileShaders();
+    await loadShaders();
+    compileShaders();
 
     // createVertexArrayObjects();
 
@@ -50,13 +59,70 @@ function render(timestamp) {
 
     gl.useProgram(prog);
 
-    updateAngle(timestamp);
+    // updateAngle(timestamp);
 
-    setUniformVariables();
-    gl.bindVertexArray(vao);
-    gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
+    // setUniformVariables();
+    // gl.bindVertexArray(vao);
+    // gl.drawArrays(gl.TRIANGLES, 0, positions.length / 3);
     
     requestAnimationFrame(render);
+}
+
+function loadShaderFile(url) {
+    return fetch(url).then(response => response.text());
+}
+
+// Loads the shader data from the files.
+async function loadShaders() {
+    const shaderURLs = [
+        './main.vert',
+        './main.frag'
+    ];
+
+    // Load shader files.
+    const shader_files = await Promise.all(shaderURLs.map(loadShaderFile));
+
+    vs_source = shader_files[0];
+    fs_source = shader_files[1];
+
+    logMessage("Shader files loaded.")
+}
+
+// Compile the GLSL shader stages and combine them
+// into a shader program.
+function compileShaders() {
+    // Create a shader of type VERTEX_SHADER.
+    vs = gl.createShader(gl.VERTEX_SHADER);
+    gl.shaderSource(vs, vs_source);
+    gl.compileShader(vs);
+    if (!gl.getShaderParameter(vs, gl.COMPILE_STATUS)) {
+        logError(gl.getShaderInfoLog(vs));
+        gl.deleteShader(vs);
+    }
+
+    // Repeat for the fragment shader.
+    fs = gl.createShader(gl.FRAGMENT_SHADER);
+    gl.shaderSource(fs, fs_source);
+    gl.compileShader(fs);
+    if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+        logError(gl.getShaderInfoLog(fs));
+        gl.deleteShader(fs);
+    }
+
+    // Create a shader program.
+    prog = gl.createProgram();
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+
+    // Link the program
+    gl.linkProgram(prog);
+
+    // Check the LINK_STATUS using getProgramParameter
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        logError(gl.getProgramInfoLog(prog));
+    }
+
+    logMessage("Shader program compiled successfully.");
 }
 
 // Logging
