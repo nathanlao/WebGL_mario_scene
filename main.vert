@@ -1,25 +1,13 @@
 #version 300 es
-precision mediump float;
 
-// Attributes
 in vec4 vPosition;
-in vec3 vNormal;
+in vec2 vTexCoord; // Texture coordinate attribute
 
-// Uniforms
-uniform mat4 modelViewMatrix;
-uniform mat4 projectionMatrix;
-uniform mat3 normalMatrix;
+uniform mat4 transform;
 
-// Varyings
-out vec3 fNormal;
-out vec3 fPosition;
+out vec2 fTexCoord; // Texture coordinate to fragment shader
 
 void main() {
-    // Transform the position and normal
-    vec4 pos = modelViewMatrix * vPosition;
-    fPosition = pos.xyz;
-    fNormal = normalMatrix * vNormal;
-
-    // Transform the vertex position
-    gl_Position = projectionMatrix * pos;
+    gl_Position = transform * vPosition;
+    fTexCoord = vTexCoord; // Pass the texture coordinate to the fragment shader
 }
