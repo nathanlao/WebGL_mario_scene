@@ -24,7 +24,7 @@ let platformTextureCoordBuffer;
 
 let platformVAO;
 
-function createData() {
+function createPlatformData() {
     // Vertices for the platform
     platformVertices = [
         vec3(-0.5, -5.5,  0.5), 
@@ -82,7 +82,7 @@ function createData() {
     
 }
 
-function createBuffers() {
+function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, platformPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(platformVertices), gl.STATIC_DRAW);
@@ -99,7 +99,7 @@ function createBuffers() {
 }
 
 
-function createVertexArrayObjects() {
+function createPlatformVertexArrayObjects() {
     platformVAO = gl.createVertexArray();
     gl.bindVertexArray(platformVAO);
 
@@ -121,7 +121,7 @@ function createVertexArrayObjects() {
 }
 
 
-function setUniformVariables() { 
+function setPlatformUniformVariables() { 
     const identityMatrix = [
         1.0, 0.0, 0.0, 0.0,
         0.0, 1.0, 0.0, 0.0,
@@ -168,9 +168,9 @@ async function setup() {
     initializeContext();
     
     // 1.
-    createData();
+    createPlatformData();
     // 2. 
-    createBuffers();
+    createPlatformBuffers();
 
     // 3. Load texture image
     platformTexture = gl.createTexture();
@@ -184,7 +184,7 @@ async function setup() {
     compileShaders();
 
     // 4.
-    createVertexArrayObjects();
+    createPlatformVertexArrayObjects();
 
     // angle = 0.0;
     // angularSpeed = 0.0;
@@ -203,7 +203,7 @@ function render(timestamp) {
     // updateAngle(timestamp);
 
     // 4. 
-    setUniformVariables();
+    setPlatformUniformVariables();
     
     
     // 5. 
