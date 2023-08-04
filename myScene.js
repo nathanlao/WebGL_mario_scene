@@ -24,6 +24,10 @@ let platformTextureCoordBuffer;
 
 let platformVAO;
 
+let brickVertices, brickIndices, brickTexCoords;
+let brickPositionBuffer, brickTexCoordBuffer, brickIndexBuffer;
+let brickVAO;
+
 function createPlatformData() {
     // Vertices for the platform
     platformVertices = [
@@ -82,6 +86,108 @@ function createPlatformData() {
     
 }
 
+function createBrickData() {
+    // Vertices for the brick
+    brickVertices = [
+       // Front
+        vec3(-0.5, 2,  0.5),
+        vec3(-0.5,  3,  0.5),
+        vec3(0.5,  3,  0.5),
+        vec3(0.5, 2,  0.5),
+        // Back
+        vec3(-0.5, 2, -0.5),
+        vec3(-0.5,  3, -0.5),
+        vec3(0.5,  3, -0.5),
+        vec3(0.5, 2, -0.5),
+        // Right
+        vec3(0.5, 2,  0.5),
+        vec3(0.5,  3,  0.5),
+        vec3(0.5,  3, -0.5),
+        vec3(0.5, 2, -0.5),
+        // Left
+        vec3(-0.5, 2,  0.5),
+        vec3(-0.5,  3,  0.5),
+        vec3(-0.5,  3, -0.5),
+        vec3(-0.5, 2, -0.5),
+        // Top
+        vec3(-0.5,  3,  0.5),
+        vec3(-0.5,  3, -0.5),
+        vec3(0.5,  3, -0.5),
+        vec3(0.5,  3,  0.5),
+        // Bottom
+        vec3(-0.5, 2,  0.5),
+        vec3(-0.5, 2, -0.5),
+        vec3(0.5, 2, -0.5),
+        vec3(0.5, 2,  0.5),
+    ];
+
+    // Indices for the brick
+    brickIndices = [
+       // Front
+        0, 1, 2,
+        0, 2, 3,
+
+        // Back
+        4, 5, 6,
+        4, 6, 7,
+
+        // Right
+        8, 9, 10,
+        8, 10, 11,
+
+        // Left
+        12, 13, 14,
+        12, 14, 15,
+
+        // Top
+        16, 17, 18,
+        16, 18, 19,
+
+        // Bottom
+        20, 21, 22,
+        20, 22, 23
+    ];
+
+    // Texture coordinates for the brick
+    brickTexCoords = [
+         // Front
+        vec2(0.0, 1.0),
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        // Back
+        vec2(0.0, 1.0),
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        // Right
+        vec2(0.0, 1.0),
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        // Left
+        vec2(0.0, 1.0),
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        // Top
+        vec2(0.0, 1.0),
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+
+        // Bottom
+        vec2(0.0, 1.0),
+        vec2(0.0, 0.0),
+        vec2(1.0, 0.0),
+        vec2(1.0, 1.0),
+    ];
+}
+
 function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, platformPositionBuffer);
@@ -96,6 +202,20 @@ function createPlatformBuffers() {
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(platformTextureCoordinates), gl.STATIC_DRAW);
 
     logMessage("Created buffers.");
+}
+
+function createBrickBuffers() {
+    brickPositionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, brickPositionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(brickVertices), gl.STATIC_DRAW);
+
+    brickTexCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, brickTexCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(brickTexCoords), gl.STATIC_DRAW);
+
+    brickIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, brickIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(brickIndices), gl.STATIC_DRAW);
 }
 
 
@@ -120,6 +240,24 @@ function createPlatformVertexArrayObjects() {
     logMessage("Created vertex array objects.");
 }
 
+function createBrickVertexArrayObjects() {
+    brickVAO = gl.createVertexArray();
+    gl.bindVertexArray(brickVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, brickPositionBuffer);
+    var vPosition = gl.getAttribLocation(prog, 'vPosition');
+    gl.vertexAttribPointer(vPosition, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vPosition);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, brickTexCoordBuffer);
+    var vTexCoord = gl.getAttribLocation(prog, 'vTexCoord');
+    gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vTexCoord);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, brickIndexBuffer);
+
+    gl.bindVertexArray(null);
+}
 
 function setPlatformUniformVariables() { 
     const identityMatrix = [
@@ -161,7 +299,38 @@ function setPlatformUniformVariables() {
     gl.uniform1i(uTextureLocation, 0);
 }
 
+function setBrickUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Scale factors
+    var scaleX = 0.2;
+    var scaleY = 0.2;
+    var scaleZ = 0.2;
+
+    model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
+    model = mult(translate(1.0, 1.0, 1.0), model); // Translation transformation
+
+    var eye = vec3(2, 2, 2);
+    var target = vec3(0, 0, 0);
+    var up = vec3(0, 1, 0);
+
+    var view = lookAt(eye, target, up);
+
+    var aspect = canvas.width / canvas.height;
+    var projection = perspective(45.0, aspect, 0.1, 1000.0);
+
+    var transform = mult(projection, mult(view, model));
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+}
+
 let platformTexture;
+let brickTexture;
 
 async function setup() {
 
@@ -169,8 +338,11 @@ async function setup() {
     
     // 1.
     createPlatformData();
+    createBrickData();
+
     // 2. 
     createPlatformBuffers();
+    createBrickBuffers();
 
     // 3. Load texture image
     platformTexture = gl.createTexture();
@@ -178,13 +350,22 @@ async function setup() {
     platformImage.onload = function() { 
         handleTextureLoaded(platformImage, platformTexture); 
     }
-    platformImage.src = "texture.png"; // texture image
+    platformImage.src = "./textureImages/texture.png"; // platform texture image
+
+    brickTexture = gl.createTexture();
+    let brickImage = new Image();
+    brickImage.onload = function() { 
+        handleTextureLoaded(brickImage, brickTexture); 
+    }
+    brickImage.src = "./textureImages/block.png"; // brick texture image
+
 
     await loadShaders();
     compileShaders();
 
     // 4.
     createPlatformVertexArrayObjects();
+    createBrickVertexArrayObjects();
 
     // angle = 0.0;
     // angularSpeed = 0.0;
@@ -204,16 +385,18 @@ function render(timestamp) {
 
     // 4. 
     setPlatformUniformVariables();
-    
-    
     // 5. 
     gl.bindVertexArray(platformVAO);
-    
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, platformTexture);
-
     gl.drawElements(gl.TRIANGLES, platformIndices.length, gl.UNSIGNED_SHORT, 0);
-    
+
+    setBrickUniformVariables();
+    gl.bindVertexArray(brickVAO);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, brickTexture);
+    gl.drawElements(gl.TRIANGLES, brickIndices.length, gl.UNSIGNED_SHORT, 0);
+
     requestAnimationFrame(render);
 }
 

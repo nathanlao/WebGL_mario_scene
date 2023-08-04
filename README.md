@@ -1,6 +1,6 @@
 ## Concepts used
 - Scaling transformation (platfrom)
-- Texture mapping (platform)
+- Texture mapping (platform, brick)
 
 ## Resources
 
