@@ -27,6 +27,8 @@ let platformVAO;
 let brickVertices, brickIndices, brickTexCoords;
 let brickPositionBuffer, brickTexCoordBuffer, brickIndexBuffer;
 let brickVAO;
+let brickNormals;
+let brickNormalBuffer;
 
 function createPlatformData() {
     // Vertices for the platform
@@ -186,6 +188,44 @@ function createBrickData() {
         vec2(1.0, 0.0),
         vec2(1.0, 1.0),
     ];
+
+    brickNormals = [
+        // Front
+        vec3(0, 0, 1),
+        vec3(0, 0, 1),
+        vec3(0, 0, 1),
+        vec3(0, 0, 1),
+
+        // Back
+        vec3(0, 0, -1),
+        vec3(0, 0, -1),
+        vec3(0, 0, -1),
+        vec3(0, 0, -1),
+
+        // Right
+        vec3(1, 0, 0),
+        vec3(1, 0, 0),
+        vec3(1, 0, 0),
+        vec3(1, 0, 0),
+
+        // Left
+        vec3(-1, 0, 0),
+        vec3(-1, 0, 0),
+        vec3(-1, 0, 0),
+        vec3(-1, 0, 0),
+
+        // Top
+        vec3(0, 1, 0),
+        vec3(0, 1, 0),
+        vec3(0, 1, 0),
+        vec3(0, 1, 0),
+
+        // Bottom
+        vec3(0, -1, 0),
+        vec3(0, -1, 0),
+        vec3(0, -1, 0),
+        vec3(0, -1, 0),
+    ];
 }
 
 function createPlatformBuffers() {
@@ -212,6 +252,10 @@ function createBrickBuffers() {
     brickTexCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, brickTexCoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, flatten(brickTexCoords), gl.STATIC_DRAW);
+
+    brickNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, brickNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, flatten(brickNormals), gl.STATIC_DRAW);
 
     brickIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, brickIndexBuffer);
@@ -253,6 +297,11 @@ function createBrickVertexArrayObjects() {
     var vTexCoord = gl.getAttribLocation(prog, 'vTexCoord');
     gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
     gl.enableVertexAttribArray(vTexCoord);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, brickNormalBuffer);
+    var vNormal = gl.getAttribLocation(prog, 'vNormal');
+    gl.vertexAttribPointer(vNormal, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(vNormal);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, brickIndexBuffer);
 
@@ -320,13 +369,61 @@ function setBrickUniformVariables() {
     var up = vec3(0, 1, 0);
 
     var view = lookAt(eye, target, up);
+    var modelView = mult(view, model); // Model-view matrix for the Phong model
 
     var aspect = canvas.width / canvas.height;
     var projection = perspective(45.0, aspect, 0.1, 1000.0);
 
     var transform = mult(projection, mult(view, model));
 
+    // Normal matrix for the Phong model
+    var normalMatrix = [
+        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
+        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
+        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
+    ];
+
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+
+    // Uniform variables for the Phong model
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    // Lighting properties
+    gl.uniform3fv(gl.getUniformLocation(prog, "uLightPosition"), flatten(lightPosition));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uLightAmbient"), flatten(vec4(0.8, 0.8, 0.8, 1.0)));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uLightDiffuse"), flatten(vec4(0.6, 0.6, 0.6, 1.0)));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uLightSpecular"), flatten(vec4(1.0, 1.0, 1.0, 1.0)));
+
+    // Material properties for a yellowish brick
+    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialAmbient"), flatten(vec4(0.6, 0.6, 0.1, 1.0)));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialDiffuse"), flatten(vec4(1.0, 1.0, 0.2, 1.0)));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialSpecular"), flatten(vec4(0.5, 0.5, 0.1, 1.0)));
+    gl.uniform1f(gl.getUniformLocation(prog, "uMaterialShininess"), 10.0);
+}
+
+var lightAngle = 0.0;
+var lightPosition = vec3(2.0, 2.0, 2.0);
+var lastTime = Date.now();
+
+function updateLightAnimate() {
+    // Time elapsed since the last frame
+    var now = Date.now();
+    var elapsed = now - lastTime;
+    lastTime = now;
+
+    // Light makes one full rotation every 10 secs
+    lightAngle += (360.0 / 10.0) * (elapsed / 1000.0); 
+
+    var angleInRadians = lightAngle * Math.PI / 180.0;
+
+    // New light position
+    var lightRadius = 5.0;
+    var lightZ = 2.0 + 1.0 * Math.sin(angleInRadians); 
+    lightPosition = vec3(lightRadius * Math.cos(angleInRadians), lightRadius * Math.sin(angleInRadians), lightZ);
+
+    // Update the light position uniform in the shader
+    gl.uniform3fv(gl.getUniformLocation(prog, "uLightPosition"), flatten(lightPosition));
 }
 
 let platformTexture;
@@ -367,9 +464,6 @@ async function setup() {
     createPlatformVertexArrayObjects();
     createBrickVertexArrayObjects();
 
-    // angle = 0.0;
-    // angularSpeed = 0.0;
-
     requestAnimationFrame(render);
 }
 
@@ -382,6 +476,7 @@ function render(timestamp) {
     gl.useProgram(prog);
 
     // updateAngle(timestamp);
+    updateLightAnimate();
 
     // 4. 
     setPlatformUniformVariables();
