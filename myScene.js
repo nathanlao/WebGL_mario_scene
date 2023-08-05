@@ -387,13 +387,33 @@ function setPlatformUniformVariables() {
     var up = vec3(0, 1, 0);
 
     var view = lookAt(eye, target, up);
+    var modelView = mult(view, model); // Model-view matrix for the Phong model
 
     var aspect = canvas.width / canvas.height;
     var projection = perspective(45.0, aspect, 0.1, 1000.0);
 
     var transform = mult(projection, mult(view, model));
 
+     // Normal matrix for the Phong model
+    var normalMatrix = [
+        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
+        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
+        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
+    ];
+
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+
+    // Uniform variables for the Phong model
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    // Set light and material properties for platform
+    setLightingAndMaterialUniforms(
+        vec4(0.6, 0.6, 0.1, 1.0), 
+        vec4(1.0, 1.0, 0.2, 1.0), 
+        vec4(0.5, 0.5, 0.1, 1.0), 
+        10.0 
+    );
 
     // uTexture
     let uTextureLocation = gl.getUniformLocation(prog, 'uTexture');
@@ -441,17 +461,13 @@ function setBrickUniformVariables() {
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
     gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
 
-    // Lighting properties
-    gl.uniform3fv(gl.getUniformLocation(prog, "uLightPosition"), flatten(lightPosition));
-    gl.uniform4fv(gl.getUniformLocation(prog, "uLightAmbient"), flatten(vec4(0.8, 0.8, 0.8, 1.0)));
-    gl.uniform4fv(gl.getUniformLocation(prog, "uLightDiffuse"), flatten(vec4(0.6, 0.6, 0.6, 1.0)));
-    gl.uniform4fv(gl.getUniformLocation(prog, "uLightSpecular"), flatten(vec4(1.0, 1.0, 1.0, 1.0)));
-
-    // Material properties for a yellowish brick
-    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialAmbient"), flatten(vec4(0.6, 0.6, 0.1, 1.0)));
-    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialDiffuse"), flatten(vec4(1.0, 1.0, 0.2, 1.0)));
-    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialSpecular"), flatten(vec4(0.5, 0.5, 0.1, 1.0)));
-    gl.uniform1f(gl.getUniformLocation(prog, "uMaterialShininess"), 10.0);
+    // Set light and material properties for brick
+    setLightingAndMaterialUniforms(
+        vec4(0.6, 0.6, 0.1, 1.0), 
+        vec4(1.0, 1.0, 0.2, 1.0), 
+        vec4(0.5, 0.5, 0.1, 1.0), 
+        10.0 
+    );
 }
 
 var lastTime = Date.now();
@@ -523,8 +539,7 @@ function render(timestamp) {
 
     gl.useProgram(prog);
 
-    // updateAngle(timestamp);
-    updateLightAnimate();
+    // updateLightAnimate();
 
     // 4. 
     setPlatformUniformVariables();
@@ -624,6 +639,20 @@ function handleTextureLoaded(image, texture) {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
     gl.generateMipmap(gl.TEXTURE_2D);
     gl.bindTexture(gl.TEXTURE_2D, null);
+}
+
+function setLightingAndMaterialUniforms(materialAmbient, materialDiffuse, materialSpecular, materialShininess) {
+    // Lighting properties
+    gl.uniform3fv(gl.getUniformLocation(prog, "uLightPosition"), flatten(lightPosition));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uLightAmbient"), flatten(vec4(0.8, 0.8, 0.8, 1.0)));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uLightDiffuse"), flatten(vec4(0.6, 0.6, 0.6, 1.0)));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uLightSpecular"), flatten(vec4(1.0, 1.0, 1.0, 1.0)));
+
+    // Material properties
+    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialAmbient"), flatten(materialAmbient));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialDiffuse"), flatten(materialDiffuse));
+    gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialSpecular"), flatten(materialSpecular));
+    gl.uniform1f(gl.getUniformLocation(prog, "uMaterialShininess"), materialShininess);
 }
 
 // Logging
