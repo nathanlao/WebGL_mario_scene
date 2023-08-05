@@ -35,6 +35,10 @@ let brickNormalBuffer;
 var lightAngle = 0.0;
 var lightPosition = vec3(2.0, 2.0, 2.0);
 
+var rotationX = 0.0;
+var rotationY = 0.0;
+var rotationZ = 0.0;
+
 function createPlatformData() {
     // Vertices for the platform
     platformVertices = [
@@ -371,8 +375,6 @@ function setPlatformUniformVariables() {
     gl.useProgram(prog);
     var transform_loc = gl.getUniformLocation(prog, "transform");
 
-    // var angle = performance.now() / 2000; 
-
     var model = rotate(0, [0.0, 1.0, 0.0]);
 
     // Scale factors for x, y, and z
@@ -427,6 +429,11 @@ function setBrickUniformVariables() {
     var transform_loc = gl.getUniformLocation(prog, "transform");
 
     var model = identityMatrix;
+
+    // Apply rotations
+    model = mult(model, rotate(rotationX, [1, 0, 0]));
+    model = mult(model, rotate(rotationY, [0, 1, 0]));
+    model = mult(model, rotate(rotationZ, [0, 0, 1]));
 
     // Scale factors
     var scaleX = 0.2;
@@ -496,6 +503,8 @@ let brickTexture;
 async function setup() {
 
     initializeContext();
+
+    // setEventListeners(canvas);
     
     // 1.
     createPlatformData();
@@ -547,6 +556,8 @@ function render(timestamp) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, platformTexture);
     gl.drawElements(gl.TRIANGLES, platformIndices.length, gl.UNSIGNED_SHORT, 0);
+
+    updateBrickRotation();
 
     setBrickUniformVariables();
     gl.bindVertexArray(brickVAO);
@@ -630,6 +641,59 @@ function compileShaders() {
 
     logMessage("Shader program compiled successfully.");
 }
+
+var lastTimeBrick = Date.now();
+
+function updateBrickRotation() {
+    var now = Date.now();
+    var elapsed = now - lastTimeBrick;
+    lastTimeBrick = now;
+
+    // Rotation on Y every 10 secs
+    var rotationSpeed = (360.0 / 10.0) * (elapsed / 1000.0);
+    rotationY += rotationSpeed;
+}
+
+// function setEventListeners(canvas) { 
+
+//     canvas.addEventListener("contextmenu", function (event) {
+//         event.preventDefault();
+//     });
+    
+//     canvas.addEventListener("mousedown", function (event) {
+//         // Left click 
+//         if (event.button === 0) { 
+//             var startX = event.clientX;
+//             var startY = event.clientY;
+
+//             function handleMouseMove(event) {
+//                 var currentX = event.clientX;
+//                 var currentY = event.clientY;
+
+//                 // X, Y directions.
+//                 var deltaX = currentX - startX;
+//                 var deltaY = currentY - startY;
+
+//                 // Update the rotation angles.
+//                 rotationY += deltaX * 0.5;
+//                 rotationX += deltaY * 0.5;
+
+//                 // Reset
+//                 startX = currentX;
+//                 startY = currentY;
+//             }
+//         }
+//         function handleMouseUp() {
+//             // Button released
+//             document.removeEventListener("mousemove", handleMouseMove);
+//             document.removeEventListener("mouseup", handleMouseUp);
+//         }
+
+//         // Attach event listeners to handle mouse movement and release.
+//         document.addEventListener("mousemove", handleMouseMove);
+//         document.addEventListener("mouseup", handleMouseUp);
+//     });
+// }
 
 // Create the texture from the image
 function handleTextureLoaded(image, texture) {
