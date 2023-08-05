@@ -206,10 +206,10 @@ function createBrickData() {
         vec2(1.0, 1.0),
 
         // Back
-        vec2(0.0, 1.0),
-        vec2(0.0, 0.0),
-        vec2(1.0, 0.0),
         vec2(1.0, 1.0),
+        vec2(1.0, 0.0),
+        vec2(0.0, 0.0),
+        vec2(0.0, 1.0),
 
         // Right
         vec2(0.0, 1.0),
@@ -218,10 +218,10 @@ function createBrickData() {
         vec2(1.0, 1.0),
 
         // Left
-        vec2(0.0, 1.0),
-        vec2(0.0, 0.0),
-        vec2(1.0, 0.0),
         vec2(1.0, 1.0),
+        vec2(1.0, 0.0),
+        vec2(0.0, 0.0),
+        vec2(0.0, 1.0),
 
         // Top
         vec2(0.0, 1.0),
