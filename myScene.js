@@ -704,11 +704,10 @@ function render(timestamp) {
     gl.bindTexture(gl.TEXTURE_2D, brickTexture);
     gl.drawElements(gl.TRIANGLES, brickIndices.length, gl.UNSIGNED_SHORT, 0);
 
-    setHeadUniformVariables(); // You'll need to define this function; see below.
+    setHeadUniformVariables(); 
     gl.bindVertexArray(headVAO);
-    // Assuming the head uses a texture, otherwise remove the next two lines
-    gl.activeTexture(gl.TEXTURE0); // Using a different texture unit from the previous objects.
-    gl.bindTexture(gl.TEXTURE_2D, headTexture); // Assuming you've defined a texture for the head
+    gl.activeTexture(gl.TEXTURE0); 
+    gl.bindTexture(gl.TEXTURE_2D, headTexture);
     gl.drawElements(gl.TRIANGLES, headData.indices.length, gl.UNSIGNED_SHORT, 0);
 
     requestAnimationFrame(render);
