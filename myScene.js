@@ -477,26 +477,6 @@ function setBrickUniformVariables() {
     );
 }
 
-var lastTime = Date.now();
-
-function updateLightAnimate() {
-    // Time elapsed since the last frame
-    var now = Date.now();
-    var elapsed = now - lastTime;
-    lastTime = now;
-
-    // Light makes one full rotation every 10 secs
-    lightAngle += (360.0 / 10.0) * (elapsed / 1000.0); 
-
-    var angleInRadians = lightAngle * Math.PI / 180.0;
-
-    // New light position
-    var lightRadius = 5.0;
-    var lightZ = 2.0 + 1.0 * Math.sin(angleInRadians); 
-    lightPosition = vec3(lightRadius * Math.cos(angleInRadians), lightRadius * Math.sin(angleInRadians), lightZ);
-
-}
-
 let platformTexture;
 let brickTexture;
 
@@ -640,6 +620,26 @@ function compileShaders() {
     }
 
     logMessage("Shader program compiled successfully.");
+}
+
+var lastTime = Date.now();
+
+function updateLightAnimate() {
+    // Time elapsed since the last frame
+    var now = Date.now();
+    var elapsed = now - lastTime;
+    lastTime = now;
+
+    // Light makes one full rotation every 10 secs
+    lightAngle += (360.0 / 10.0) * (elapsed / 1000.0); 
+
+    var angleInRadians = lightAngle * Math.PI / 180.0;
+
+    // New light position
+    var lightRadius = 5.0;
+    var lightZ = 2.0 + 1.0 * Math.sin(angleInRadians); 
+    lightPosition = vec3(lightRadius * Math.cos(angleInRadians), lightRadius * Math.sin(angleInRadians), lightZ);
+
 }
 
 var lastTimeBrick = Date.now();
