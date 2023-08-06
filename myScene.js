@@ -1029,7 +1029,7 @@ function setRightArmUniformVariables() {
     );
 }
 
-function setLegsUniformVariables() { 
+function setRightLegUniformVariables() { 
     const identityMatrix = mat4();
 
     gl.useProgram(prog);
@@ -1038,7 +1038,52 @@ function setLegsUniformVariables() {
     var model = identityMatrix;
 
     // Legs' position 
-    model = mult(translate(0.05, 0.23, 0.0), model);
+    model = mult(translate(0.09, 0.23, 0.0), model);
+
+    // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
+    // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
+    // model = mult(model, rotate(legRotationAngleZ, [0, 0, 1]));
+
+    var eye = vec3(2, 2, 2);
+    var target = vec3(0, 0, 0);
+    var up = vec3(0, 1, 0);
+
+    var view = lookAt(eye, target, up);
+    var modelView = mult(view, model); 
+
+    var aspect = canvas.width / canvas.height;
+    var projection = perspective(45.0, aspect, 0.1, 1000.0);
+
+    var transform = mult(projection, modelView);
+
+    var normalMatrix = [
+        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
+        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
+        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
+    ];
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    setLightingAndMaterialUniforms(
+        vec4(0.6, 0.4, 0.3, 1.0), 
+        vec4(0.8, 0.6, 0.5, 1.0), 
+        vec4(0.7, 0.5, 0.4, 1.0), 
+        28.0                      
+    );
+}
+
+function setLeftLegUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Legs' position 
+    model = mult(translate(-0.09, 0.23, 0.0), model);
 
     // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
@@ -1217,7 +1262,13 @@ function render(timestamp) {
     updateHandWave(timestamp);
 
     // Mario's legs rendering
-    setLegsUniformVariables();
+    setLeftLegUniformVariables();
+    gl.bindVertexArray(legVAO);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, legTexture);  
+    gl.drawElements(gl.TRIANGLES, legData.indices.length, gl.UNSIGNED_SHORT, 0);
+
+    setRightLegUniformVariables();
     gl.bindVertexArray(legVAO);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, legTexture);  
