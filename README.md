@@ -3,6 +3,7 @@
 - Rotation transformation (brick, mario head)
 - Texture mapping (platform, brick)
 - Sphere uv mapping (mario head)
+- Cylinder texture mapping (mario body)
 
 ## Resources
 
@@ -15,6 +16,8 @@ https://www.redbubble.com/i/art-board-print/Question-Mark-Block-Box-Parody-by-Th
 
 https://wallpapersafari.com/w/PhoCDs
 
+https://www.deviantart.com/ussempire/art/Mario-Overalls-61761578
+
 ### Light movement
 https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Lighting_in_WebGL
 
@@ -25,3 +28,6 @@ https://math.hws.edu/graphicsbook/c2/s4.html
 https://www.mvps.org/directx/articles/spheremap.htm
 https://codepen.io/ktmpower/pen/ZbGRpW
 https://www.spiria.com/en/blog/desktop-software/understanding-uv-mapping-and-textures/
+
+### Cylinder
+http://www.songho.ca/opengl/gl_cylinder.html
