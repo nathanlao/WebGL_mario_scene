@@ -755,24 +755,8 @@ function setPlatformUniformVariables() {
 
     model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); // Model-view matrix for the Phong model
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, mult(view, model));
-
-     // Normal matrix for the Phong model
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
 
@@ -814,24 +798,8 @@ function setBrickUniformVariables() {
     model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
     model = mult(translate(1.0, 1.0, 1.0), model); // Translation transformation
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); // Model-view matrix for the Phong model
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, mult(view, model));
-
-    // Normal matrix for the Phong model
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
 
@@ -862,23 +830,8 @@ function setHeadUniformVariables() {
     model = mult(model, rotate(headRotationAngleY, [0, 1, 0]));
     model = mult(model, rotate(headRotationAngleZ, [0, 0, 1]));
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); 
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, modelView);
-
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
@@ -909,23 +862,8 @@ function setBodyUniformVariables() {
     model = mult(model, rotate(bodyRotationAngleY, [0, 1, 0]));
     model = mult(model, rotate(bodyRotationAngleZ, [0, 0, 1]));
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); 
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, modelView);
-
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
@@ -956,23 +894,8 @@ function setLeftArmUniformVariables() {
     model = mult(model, rotate(leftArmRotationAngleY, [0, 1, 0]));
     model = mult(model, rotate(leftArmRotationAngleZ, [0, 0, 1]));
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); 
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, modelView);
-
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
@@ -1002,23 +925,8 @@ function setRightArmUniformVariables() {
     model = mult(model, rotate(rightArmRotationAngleY, [0, 1, 0]));
     model = mult(model, rotate(rightArmRotationAngleZ, [0, 0, 1]));
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); 
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, modelView);
-
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
@@ -1047,23 +955,8 @@ function setRightLegUniformVariables() {
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
     // model = mult(model, rotate(legRotationAngleZ, [0, 0, 1]));
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); 
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, modelView);
-
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
@@ -1092,23 +985,8 @@ function setLeftLegUniformVariables() {
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
     // model = mult(model, rotate(legRotationAngleZ, [0, 0, 1]));
 
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
-
-    var view = lookAt(eye, target, up);
-    var modelView = mult(view, model); 
-
-    var aspect = canvas.width / canvas.height;
-    var projection = perspective(45.0, aspect, 0.1, 1000.0);
-
-    var transform = mult(projection, modelView);
-
-    var normalMatrix = [
-        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
-        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
-        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
-    ];
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
 
     gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
     gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
@@ -1470,6 +1348,33 @@ function setEventListeners(canvas) {
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
     });
+}
+
+function computeTransformations(modelMatrix) {
+    var eye = vec3(2, 2, 2);
+    var target = vec3(0, 0, 0);
+    var up = vec3(0, 1, 0);
+
+    var view = lookAt(eye, target, up);
+    var modelView = mult(view, modelMatrix);
+
+    var aspect = canvas.width / canvas.height;
+    var projection = perspective(45.0, aspect, 0.1, 1000.0);
+
+    var transform = mult(projection, modelView);
+
+    return {
+        transform: transform,
+        modelView: modelView
+    };
+}
+
+function computeNormalMatrix(modelViewMatrix) {
+    return [
+        vec3(modelViewMatrix[0][0], modelViewMatrix[0][1], modelViewMatrix[0][2]),
+        vec3(modelViewMatrix[1][0], modelViewMatrix[1][1], modelViewMatrix[1][2]),
+        vec3(modelViewMatrix[2][0], modelViewMatrix[2][1], modelViewMatrix[2][2])
+    ];
 }
 
 // Create the texture from the image
