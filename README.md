@@ -1,9 +1,10 @@
 ## Concepts used
 - Scaling transformation (platfrom, brick)
 - Rotation transformation (brick, mario head)
-- Texture mapping (platform, brick)
-- Sphere uv mapping (mario head)
-- Cylinder texture mapping (mario body)
+- Texture mapping (platform, brick, mario)
+- Sphere with uv mapping (mario head)
+- Cylinder with texture mapping (mario body)
+- Frustum with texture mapping (mario leg)
 
 ## Resources
 
@@ -20,6 +21,8 @@ https://www.deviantart.com/ussempire/art/Mario-Overalls-61761578
 
 https://www.models-resource.com/3ds/amiibolottery/model/15870/
 
+https://www.mprnews.org/story/2023/03/15/itsame-marios-shoe-red-wing-makes-boots-inspired-by-video-game-character-mario
+
 ### Light movement
 https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Lighting_in_WebGL
 
@@ -33,3 +36,8 @@ https://www.spiria.com/en/blog/desktop-software/understanding-uv-mapping-and-tex
 
 ### Cylinder
 http://www.songho.ca/opengl/gl_cylinder.html
+
+
+### Frustum
+https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_model_view_projection
+https://webglfundamentals.org/webgl/frustum-diagram.html

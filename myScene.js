@@ -44,6 +44,10 @@ let armData = {};
 let armVertexBuffer, armNormalBuffer, armTexCoordsBuffer, armIndexBuffer;
 let armVAO;
 
+let legData = {};
+let legVertexBuffer, legNormalBuffer, legTexCoordsBuffer, legIndexBuffer;
+let legVAO;
+
 let lightAngle = 0.0;
 let lightPosition = vec3(2.0, 2.0, 2.0);
 
@@ -410,6 +414,66 @@ function createArmsData() {
     armData = createCylinderData(0.04, 0.25);
 }
 
+// Mario's legs
+function createLegsData() {
+    legData = createFrustumData(0.01, 0.075, 0.5); 
+}
+
+function createFrustumData(topRadius, bottomRadius, height, slices = 30) {
+    var frustumData = {
+        vertices: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    };
+
+    for (var i = 0; i <= slices; i++) {
+        var theta = i * 2 * Math.PI / slices;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+
+        var x = cosTheta;
+        var z = sinTheta;
+        var u = i / slices;
+
+        // Top circle
+        frustumData.vertices.push(topRadius * x, height / 2, topRadius * z);
+        frustumData.texCoords.push(u, 1);
+
+        // Bottom circle
+        frustumData.vertices.push(bottomRadius * x, -height / 2, bottomRadius * z);
+        frustumData.texCoords.push(u, 0);
+    }
+
+    // Compute normals for a frustum (bit more complex than a cylinder)
+    for (var i = 0; i <= slices; i++) {
+        let slantHeight = Math.sqrt(Math.pow((bottomRadius - topRadius), 2) + Math.pow(height, 2));
+        let angle = Math.atan2(height, (bottomRadius - topRadius));
+
+        let xNormal = Math.cos(angle) * Math.cos(i * 2 * Math.PI / slices);
+        let yNormal = Math.sin(angle);
+        let zNormal = Math.cos(angle) * Math.sin(i * 2 * Math.PI / slices);
+
+        frustumData.normals.push(xNormal, yNormal, zNormal);
+        frustumData.normals.push(xNormal, yNormal, zNormal);
+    }
+
+    // Creating the frustum's indices
+    for (i = 0; i < slices; i++) {
+        var top1 = i * 2;
+        var top2 = (i + 1) * 2;
+        var bottom1 = (i * 2) + 1;
+        var bottom2 = ((i + 1) * 2) + 1;
+
+        // Two triangles for the quad
+        frustumData.indices.push(top1, bottom1, top2);
+        frustumData.indices.push(top2, bottom1, bottom2);
+    }
+
+    return frustumData;
+}
+
+
 function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, platformPositionBuffer);
@@ -500,6 +564,24 @@ function createArmsBuffers() {
     armIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, armIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(armData.indices), gl.STATIC_DRAW);
+}
+
+function createLegsBuffers() {
+    legVertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, legVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(legData.vertices), gl.STATIC_DRAW);
+
+    legNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, legNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(legData.normals), gl.STATIC_DRAW);
+
+    legTexCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, legTexCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(legData.texCoords), gl.STATIC_DRAW);
+
+    legIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, legIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(legData.indices), gl.STATIC_DRAW);
 }
 
 function createPlatformVertexArrayObjects() {
@@ -621,6 +703,30 @@ function createArmsVAO() {
     gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, armIndexBuffer);
+
+    gl.bindVertexArray(null);
+}
+
+function createLegsVAO() {
+    legVAO = gl.createVertexArray();
+    gl.bindVertexArray(legVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, legVertexBuffer);
+    let position = gl.getAttribLocation(prog, 'vPosition');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, legNormalBuffer);
+    let normal = gl.getAttribLocation(prog, 'vNormal');
+    gl.enableVertexAttribArray(normal);
+    gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, legTexCoordsBuffer);
+    let texCoord = gl.getAttribLocation(prog, 'vTexCoord');
+    gl.enableVertexAttribArray(texCoord);
+    gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, legIndexBuffer);
 
     gl.bindVertexArray(null);
 }
@@ -923,12 +1029,59 @@ function setRightArmUniformVariables() {
     );
 }
 
+function setLegsUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Legs' position 
+    model = mult(translate(0.05, 0.23, 0.0), model);
+
+    // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
+    // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
+    // model = mult(model, rotate(legRotationAngleZ, [0, 0, 1]));
+
+    var eye = vec3(2, 2, 2);
+    var target = vec3(0, 0, 0);
+    var up = vec3(0, 1, 0);
+
+    var view = lookAt(eye, target, up);
+    var modelView = mult(view, model); 
+
+    var aspect = canvas.width / canvas.height;
+    var projection = perspective(45.0, aspect, 0.1, 1000.0);
+
+    var transform = mult(projection, modelView);
+
+    var normalMatrix = [
+        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
+        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
+        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
+    ];
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    setLightingAndMaterialUniforms(
+        vec4(0.6, 0.4, 0.3, 1.0), 
+        vec4(0.8, 0.6, 0.5, 1.0), 
+        vec4(0.7, 0.5, 0.4, 1.0), 
+        28.0                      
+    );
+}
+
+
 
 let platformTexture;
 let brickTexture;
 let headTexture;
 let bodyTexture;
 let armTexture;
+let legTexture;
 
 async function setup() {
 
@@ -982,6 +1135,12 @@ async function setup() {
     }
     armImage.src = "./textureImages/arm.png"; // mario arm texture image
 
+    legTexture = gl.createTexture();
+    let legImage = new Image();
+    legImage.onload = function() { 
+        handleTextureLoaded(legImage, legTexture); 
+    }
+    legImage.src = "./textureImages/leg.png"; // mario leg texture image
 
     await loadShaders();
     compileShaders();
@@ -1056,6 +1215,13 @@ function render(timestamp) {
     rightArmRotationAngleZ = 80.0;
 
     updateHandWave(timestamp);
+
+    // Mario's legs rendering
+    setLegsUniformVariables();
+    gl.bindVertexArray(legVAO);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, legTexture);  
+    gl.drawElements(gl.TRIANGLES, legData.indices.length, gl.UNSIGNED_SHORT, 0);
 
     requestAnimationFrame(render);
 }
@@ -1174,7 +1340,7 @@ let waveSpeed = 2.0;
 function updateHandWave(timestamp) {
     let angleOffset = Math.sin(waveSpeed * timestamp / 1000) * maxWaveAngle;
 
-    leftArmRotationAngleX = -angleOffset;
+    leftArmRotationAngleX = angleOffset;
     rightArmRotationAngleX = angleOffset;
 
     if (leftArmRotationAngleX >= maxWaveAngle) {
@@ -1194,24 +1360,21 @@ function createMarioData() {
     createHeadData();
     createBodyData();
     createArmsData();
-    // createLegsData();
-    // createHatData();
+    createLegsData();
 }
 
 function createMarioBuffers() {
     createHeadBuffers();
     createBodyBuffers();
     createArmsBuffers();
-    // createLegsBuffers();
-    // createHatBuffers();
+    createLegsBuffers();
 }
 
 function createMarioVAOs() {
     createHeadVAO();
     createBodyVAO();
     createArmsVAO();
-    // createLegsVAO();
-    // createHatVAO();
+    createLegsVAO();
 }
 
 function setEventListeners(canvas) { 
@@ -1292,12 +1455,3 @@ function logObject(obj) {
     let message = JSON.stringify(obj, null, 2);
     console.log(`[obj]:\n${message}\n\n`);
 }
-
-
-// function createLegsData() {
-//     legData = createCylinderData(0.15, 0.7); // measurements for Mario's legs
-// }
-
-// function createHatData() {
-//     hatData = createSphereData(0.55); // slightly bigger than the head with a flattened shape
-// }
