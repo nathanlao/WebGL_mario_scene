@@ -60,8 +60,8 @@ let bodyRotationAngleY = 30.0;
 let bodyRotationAngleZ = 0.0;
 
 let armRotationAngleX = 100.0;
-let armRotationAngleY = -30.0;
-let armRotationAngleZ = 100.0;
+let armRotationAngleY = 170.0;
+let armRotationAngleZ = 80.0;
 
 function createPlatformData() {
     // Vertices for the platform
@@ -928,7 +928,7 @@ async function setup() {
     armTexture = gl.createTexture();
     let armImage = new Image();
     armImage.onload = function() { 
-        handleTextureLoaded(bodyImage, armTexture); 
+        handleTextureLoaded(armImage, armTexture); 
     }
     armImage.src = "./textureImages/arm.png"; // mario arm texture image
 
