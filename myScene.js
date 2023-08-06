@@ -59,9 +59,13 @@ let bodyRotationAngleX = 0.0;
 let bodyRotationAngleY = 30.0;
 let bodyRotationAngleZ = 0.0;
 
-let armRotationAngleX = 0.0;
-let armRotationAngleY = 0.0;
-let armRotationAngleZ = 0.0;
+let leftArmRotationAngleX = 0.0;
+let leftArmRotationAngleY = 0.0;
+let leftArmRotationAngleZ = 0.0;
+
+let rightArmRotationAngleX = 0.0;
+let rightArmRotationAngleY = 0.0;
+let rightArmRotationAngleZ = 0.0;
 
 function createPlatformData() {
     // Vertices for the platform
@@ -836,12 +840,12 @@ function setLeftArmUniformVariables() {
     var model = identityMatrix;
 
     // Arm's position 
-    model = mult(translate(0.2, 0.3, 0.0), model); 
+    model = mult(translate(-0.15, 0.3, 0.0), model); 
 
     // Arm rotations
-    model = mult(model, rotate(armRotationAngleX, [1, 0, 0]));
-    model = mult(model, rotate(armRotationAngleY, [0, 1, 0]));
-    model = mult(model, rotate(armRotationAngleZ, [0, 0, 1]));
+    model = mult(model, rotate(leftArmRotationAngleX, [1, 0, 0]));
+    model = mult(model, rotate(leftArmRotationAngleY, [0, 1, 0]));
+    model = mult(model, rotate(leftArmRotationAngleZ, [0, 0, 1]));
 
     var eye = vec3(2, 2, 2);
     var target = vec3(0, 0, 0);
@@ -882,12 +886,12 @@ function setRightArmUniformVariables() {
     var model = identityMatrix;
 
     // Arm's position 
-    model = mult(translate(-0.2, 0.3, 0.0), model); 
+    model = mult(translate(0.15, 0.3, 0.0), model); 
 
     // Arm rotations
-    model = mult(model, rotate(armRotationAngleX, [1, 0, 0]));
-    model = mult(model, rotate(armRotationAngleY, [0, 1, 0]));
-    model = mult(model, rotate(armRotationAngleZ, [0, 0, 1]));
+    model = mult(model, rotate(rightArmRotationAngleX, [1, 0, 0]));
+    model = mult(model, rotate(rightArmRotationAngleY, [0, 1, 0]));
+    model = mult(model, rotate(rightArmRotationAngleZ, [0, 0, 1]));
 
     var eye = vec3(2, 2, 2);
     var target = vec3(0, 0, 0);
@@ -1037,9 +1041,9 @@ function render(timestamp) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, armTexture); 
     gl.drawElements(gl.TRIANGLES, armData.indices.length, gl.UNSIGNED_SHORT, 0);
-    armRotationAngleX = 100.0;
-    armRotationAngleY = 0.0;
-    armRotationAngleZ = 100.0;
+    leftArmRotationAngleX = 100.0;
+    leftArmRotationAngleY = 0.0;
+    leftArmRotationAngleZ = 80.0;
 
     // Mario's right arm rendering
     setRightArmUniformVariables();
@@ -1047,9 +1051,11 @@ function render(timestamp) {
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, armTexture); 
     gl.drawElements(gl.TRIANGLES, armData.indices.length, gl.UNSIGNED_SHORT, 0);
-    armRotationAngleX = 100.0;
-    armRotationAngleY = 170.0;
-    armRotationAngleZ = 80.0;
+    rightArmRotationAngleX = 100.0;
+    rightArmRotationAngleY = 170.0;
+    rightArmRotationAngleZ = 80.0;
+
+    updateHandWave(timestamp);
 
     requestAnimationFrame(render);
 }
@@ -1158,6 +1164,30 @@ function updateBrickRotation() {
     // Rotation on Y every 10 secs
     var rotationSpeed = (360.0 / 10.0) * (elapsed / 1000.0);
     rotationY += rotationSpeed;
+}
+
+let waveDirection = 1; // 1 for waving up, -1 for waving down
+let maxWaveAngle = 160; 
+let minWaveAngle = -160; 
+let waveSpeed = 2.0; 
+
+function updateHandWave(timestamp) {
+    let angleOffset = Math.sin(waveSpeed * timestamp / 1000) * maxWaveAngle;
+
+    leftArmRotationAngleX = -angleOffset;
+    rightArmRotationAngleX = angleOffset;
+
+    if (leftArmRotationAngleX >= maxWaveAngle) {
+        waveDirection = -1;
+    } else if (leftArmRotationAngleX <= minWaveAngle) {
+        waveDirection = 1;
+    }
+
+    leftArmRotationAngleX -= waveDirection * waveSpeed;
+    rightArmRotationAngleX += waveDirection * waveSpeed;
+
+    leftArmRotationAngleX = Math.max(minWaveAngle, Math.min(maxWaveAngle, leftArmRotationAngleX));
+    rightArmRotationAngleX = Math.max(minWaveAngle, Math.min(maxWaveAngle, rightArmRotationAngleX));
 }
 
 function createMarioData() {
