@@ -791,12 +791,12 @@ function setBrickUniformVariables() {
     model = mult(model, rotate(rotationZ, [0, 0, 1]));
 
     // Scale factors
-    var scaleX = 0.2;
-    var scaleY = 0.2;
-    var scaleZ = 0.2;
+    var scaleX = 0.4;
+    var scaleY = 0.4;
+    var scaleZ = 0.4;
 
     model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
-    model = mult(translate(1.0, 1.0, 1.0), model); // Translation transformation
+    model = mult(translate(0.0, 0.1, 0.0), model); // Translation transformation
 
     const { transform, modelView } = computeTransformations(model);
     var normalMatrix = computeNormalMatrix(modelView);
