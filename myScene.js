@@ -55,6 +55,10 @@ let rotationX = 0.0;
 let rotationY = 0.0;
 let rotationZ = 0.0;
 
+let platformRotationX = 0.0;
+let platformRotationY = 0.0;
+let platformRotationZ = 0.0;
+
 let headRotationAngleX = -50.0;
 let headRotationAngleY = 100.0;
 let headRotationAngleZ = 0.0;
@@ -733,17 +737,16 @@ function createLegsVAO() {
 
 
 function setPlatformUniformVariables() { 
-    const identityMatrix = [
-        1.0, 0.0, 0.0, 0.0,
-        0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 1.0, 0.0,
-        0.0, 0.0, 0.0, 1.0
-    ];
+    const identityMatrix = mat4();
 
     gl.useProgram(prog);
     var transform_loc = gl.getUniformLocation(prog, "transform");
 
-    var model = rotate(0, [0.0, 1.0, 0.0]);
+    var model = identityMatrix;
+    // Apply rotations
+    model = mult(model, rotate(platformRotationX, [1, 0, 0]));
+    model = mult(model, rotate(platformRotationY, [0, 1, 0]));
+    model = mult(model, rotate(platformRotationZ, [0, 0, 1]));
 
     // Scale factors for x, y, and z
     var scaleX = 2.5;
