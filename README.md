@@ -1,10 +1,13 @@
 ## Concepts used
 - Scaling transformation (platfrom, brick)
-- Rotation transformation (brick, mario head)
+- Rotation transformation (brick, mario)
 - Texture mapping (platform, brick, mario)
-- Sphere with uv mapping (mario head)
-- Cylinder with texture mapping (mario body)
-- Frustum with texture mapping (mario leg)
+- lighting and shading (platform, brick, mario)
+- Complex Objects and Meshes:
+    - Sphere with uv mapping (mario head)
+    - Cylinder with texture mapping (mario body and arms)
+    - Frustum with texture mapping (mario leg)
+- Hierarchical Modeling: Representing objects as hierarchies, Mario is constructed of multiple parts (head, arms, body, legs)
 
 ## Resources
 
