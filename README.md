@@ -18,6 +18,8 @@ https://wallpapersafari.com/w/PhoCDs
 
 https://www.deviantart.com/ussempire/art/Mario-Overalls-61761578
 
+https://www.models-resource.com/3ds/amiibolottery/model/15870/
+
 ### Light movement
 https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Lighting_in_WebGL
 
