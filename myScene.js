@@ -36,6 +36,10 @@ let headData = {};
 let headVertexBuffer, headNormalBuffer, headTexCoordsBuffer, headIndexBuffer;
 let headVAO;
 
+let bodyData = {};
+let bodyVertexBuffer, bodyNormalBuffer, bodyTexCoordsBuffer, bodyIndexBuffer;
+let bodyVAO;
+
 let lightAngle = 0.0;
 let lightPosition = vec3(2.0, 2.0, 2.0);
 
@@ -43,9 +47,13 @@ let rotationX = 0.0;
 let rotationY = 0.0;
 let rotationZ = 0.0;
 
-let headRotationAngleX = 0.0;
-let headRotationAngleY = 0.0;
+let headRotationAngleX = -50.0;
+let headRotationAngleY = 100.0;
 let headRotationAngleZ = 0.0;
+
+let bodyRotationAngleX = 0.0;
+let bodyRotationAngleY = 30.0;
+let bodyRotationAngleZ = 0.0;
 
 function createPlatformData() {
     // Vertices for the platform
@@ -335,6 +343,56 @@ function createSphereData(radius) {
     return sphereData;
 }
 
+// Mario body
+function createBodyData() {
+    bodyData = createCylinderData(0.15, 0.3);  // Radius of 0.15 and height of 0.3 for Mario's body
+}
+
+function createCylinderData(radius, height) {
+    var cylinderData = {
+        vertices: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    };
+
+    var slices = 30;
+
+    for (var i = 0; i <= slices; i++) {
+        var theta = i * 2 * Math.PI / slices;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+
+        var x = cosTheta;
+        var z = sinTheta;
+        var u = i / slices;
+
+        // Top circle
+        cylinderData.vertices.push(radius * x, height / 2, radius * z);
+        cylinderData.normals.push(x, 0, z);
+        cylinderData.texCoords.push(u, 0);
+
+        // Bottom circle
+        cylinderData.vertices.push(radius * x, -height / 2, radius * z);
+        cylinderData.normals.push(x, 0, z);
+        cylinderData.texCoords.push(u, 1);
+    }
+
+    // Creating the cylinder's indices
+    for (i = 0; i < slices; i++) {
+        var top1 = i * 2;
+        var top2 = (i + 1) * 2;
+        var bottom1 = (i * 2) + 1;
+        var bottom2 = ((i + 1) * 2) + 1;
+
+        // Two triangles for the quad
+        cylinderData.indices.push(top1, bottom1, top2);
+        cylinderData.indices.push(top2, bottom1, bottom2);
+    }
+
+    return cylinderData;
+}
+
 function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, platformPositionBuffer);
@@ -389,6 +447,24 @@ function createHeadBuffers() {
     headIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, headIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(headData.indices), gl.STATIC_DRAW);
+}
+
+function createBodyBuffers() {
+    bodyVertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bodyVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bodyData.vertices), gl.STATIC_DRAW);
+
+    bodyNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bodyNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bodyData.normals), gl.STATIC_DRAW);
+
+    bodyTexCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, bodyTexCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(bodyData.texCoords), gl.STATIC_DRAW);
+
+    bodyIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bodyIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(bodyData.indices), gl.STATIC_DRAW);
 }
 
 function createPlatformVertexArrayObjects() {
@@ -462,6 +538,30 @@ function createHeadVAO() {
     gl.vertexAttribPointer(vTexCoord, 2, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, headIndexBuffer);
+
+    gl.bindVertexArray(null);
+}
+
+function createBodyVAO() {
+    bodyVAO = gl.createVertexArray();
+    gl.bindVertexArray(bodyVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bodyVertexBuffer);
+    let position = gl.getAttribLocation(prog, 'vPosition');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bodyNormalBuffer);
+    let normal = gl.getAttribLocation(prog, 'vNormal');
+    gl.enableVertexAttribArray(normal);
+    gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bodyTexCoordsBuffer);
+    let texCoord = gl.getAttribLocation(prog, 'vTexCoord');
+    gl.enableVertexAttribArray(texCoord);
+    gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, bodyIndexBuffer);
 
     gl.bindVertexArray(null);
 }
@@ -624,9 +724,57 @@ function setHeadUniformVariables() {
     );
 }
 
+function setBodyUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Body's position
+    model = mult(translate(0.0, 0.25, 0.0), model);
+
+    // Body rotations
+    model = mult(model, rotate(bodyRotationAngleX, [1, 0, 0]));
+    model = mult(model, rotate(bodyRotationAngleY, [0, 1, 0]));
+    model = mult(model, rotate(bodyRotationAngleZ, [0, 0, 1]));
+
+    var eye = vec3(2, 2, 2);
+    var target = vec3(0, 0, 0);
+    var up = vec3(0, 1, 0);
+
+    var view = lookAt(eye, target, up);
+    var modelView = mult(view, model); 
+
+    var aspect = canvas.width / canvas.height;
+    var projection = perspective(45.0, aspect, 0.1, 1000.0);
+
+    var transform = mult(projection, modelView);
+
+    var normalMatrix = [
+        vec3(modelView[0][0], modelView[0][1], modelView[0][2]),
+        vec3(modelView[1][0], modelView[1][1], modelView[1][2]),
+        vec3(modelView[2][0], modelView[2][1], modelView[2][2])
+    ];
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    setLightingAndMaterialUniforms(
+        vec4(0.7, 0.5, 0.4, 1.0),
+        vec4(0.9, 0.7, 0.6, 1.0),
+        vec4(0.8, 0.6, 0.5, 1.0),
+        30.0 
+    );
+}
+
+
 let platformTexture;
 let brickTexture;
 let headTexture;
+let bodyTexture;
 
 async function setup() {
 
@@ -643,7 +791,6 @@ async function setup() {
     createBrickBuffers();
     // 2. 
     createMarioBuffers();
-
 
     // 3. Load texture image
     platformTexture = gl.createTexture();
@@ -666,6 +813,13 @@ async function setup() {
         handleTextureLoaded(headImage, headTexture); 
     }
     headImage.src = "./textureImages/head.png"; // mario head texture image
+
+    bodyTexture = gl.createTexture();
+    let bodyImage = new Image();
+    bodyImage.onload = function() { 
+        handleTextureLoaded(bodyImage, bodyTexture); 
+    }
+    bodyImage.src = "./textureImages/body.png"; // mario body texture image
 
 
     await loadShaders();
@@ -690,12 +844,14 @@ function render(timestamp) {
     // updateLightAnimate();
 
     // 4. 
+    // Platform rendering
     setPlatformUniformVariables();
     gl.bindVertexArray(platformVAO);
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, platformTexture);
     gl.drawElements(gl.TRIANGLES, platformIndices.length, gl.UNSIGNED_SHORT, 0);
 
+    // Brick rendering
     updateBrickRotation();
 
     setBrickUniformVariables();
@@ -704,12 +860,20 @@ function render(timestamp) {
     gl.bindTexture(gl.TEXTURE_2D, brickTexture);
     gl.drawElements(gl.TRIANGLES, brickIndices.length, gl.UNSIGNED_SHORT, 0);
 
+    // Mario's head rendering
     setHeadUniformVariables(); 
     gl.bindVertexArray(headVAO);
     gl.activeTexture(gl.TEXTURE0); 
     gl.bindTexture(gl.TEXTURE_2D, headTexture);
     gl.drawElements(gl.TRIANGLES, headData.indices.length, gl.UNSIGNED_SHORT, 0);
 
+    // Mario's body rendering
+    setBodyUniformVariables(); 
+    gl.bindVertexArray(bodyVAO);
+    gl.activeTexture(gl.TEXTURE0); 
+    gl.bindTexture(gl.TEXTURE_2D, bodyTexture);
+    gl.drawElements(gl.TRIANGLES, bodyData.indices.length, gl.UNSIGNED_SHORT, 0);
+    
     requestAnimationFrame(render);
 }
 
@@ -821,7 +985,7 @@ function updateBrickRotation() {
 
 function createMarioData() {
     createHeadData();
-    // createBodyData();
+    createBodyData();
     // createArmsData();
     // createLegsData();
     // createHatData();
@@ -829,7 +993,7 @@ function createMarioData() {
 
 function createMarioBuffers() {
     createHeadBuffers();
-    // createBodyBuffers();
+    createBodyBuffers();
     // createArmsBuffers();
     // createLegsBuffers();
     // createHatBuffers();
@@ -837,7 +1001,7 @@ function createMarioBuffers() {
 
 function createMarioVAOs() {
     createHeadVAO();
-    // createBodyVAO();
+    createBodyVAO();
     // createArmsVAO();
     // createLegsVAO();
     // createHatVAO();
@@ -863,7 +1027,7 @@ function setEventListeners(canvas) {
                 var deltaX = currentX - startX;
                 var deltaY = currentY - startY;
 
-                // Update the rotation angles.
+                // Update the rotation angles of head.
                 headRotationAngleY += deltaX * 0.5;
                 headRotationAngleX += deltaY * 0.5;
 
