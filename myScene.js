@@ -1256,7 +1256,7 @@ async function setup() {
     coinImage.onload = function() { 
         handleTextureLoaded(coinImage, coinTexture); 
     }
-    coinImage.src = "./textureImages/coin.png"; // coin texture image
+    coinImage.src = "./textureImages/coin2.png"; // coin texture image
 
     await loadShaders();
     compileShaders();
@@ -1695,10 +1695,19 @@ function updateCoinReveal() {
             let parabola = 4 * progress * (1 - progress);
 
             coinTranslationY = coinInitialY + parabola * coinJumpHeight;
+
+            coinRotationAngleX += 10;
+            coinRotationAngleZ += 1;
+            coinRotationAngleY += 5;
         } else {
             coinRevealStart = null;
             coinRevealScheduled = null;
             coinTranslationY = coinInitialY;
+
+             // Reset rotation angle after the reveal
+            coinRotationAngleX = 0;
+            coinRotationAngleZ = 0;
+            coinRotationAngleY = 0;
         }
     }
 }
