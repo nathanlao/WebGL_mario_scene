@@ -1,4 +1,5 @@
 ## Concepts used
+- Enable Multisample Anti-Aliasing (MSAA) to smooth out jagged edges
 - Scaling transformation (platfrom, brick)
 - Rotation transformation (brick, mario)
 - Texture mapping (platform, brick, mario, coin)

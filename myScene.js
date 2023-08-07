@@ -1501,10 +1501,20 @@ function resetTranslationY() {
 
 function initializeContext() {
     canvas = document.getElementById( "gl-canvas" );
+
+    let contextAttributes = {
+        antialias: true
+    };
     
-    gl = WebGLUtils.setupWebGL( canvas );
+    gl = WebGLUtils.setupWebGL( canvas , contextAttributes);
     if ( !gl ) { 
         alert( "WebGL isn't available" ); 
+    }
+
+    // Check if MSAA is enabled
+    let actualAttributes = gl.getContextAttributes();
+    if (!actualAttributes.antialias) {
+        console.log("MSAA is not enabled.");
     }
 
     gl.viewport( 0, 0, canvas.width, canvas.height );
