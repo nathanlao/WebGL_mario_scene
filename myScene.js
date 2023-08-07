@@ -1256,7 +1256,7 @@ async function setup() {
     coinImage.onload = function() { 
         handleTextureLoaded(coinImage, coinTexture); 
     }
-    coinImage.src = "./textureImages/coin2.png"; // coin texture image
+    coinImage.src = "./textureImages/coin.png"; // coin texture image
 
     await loadShaders();
     compileShaders();
