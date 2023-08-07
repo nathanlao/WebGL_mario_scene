@@ -1180,34 +1180,8 @@ function render(timestamp) {
     gl.drawElements(gl.TRIANGLES, legData.indices.length, gl.UNSIGNED_SHORT, 0);
 
     updateMarioJump();
-    
+
     requestAnimationFrame(render);
-}
-
-function updateMarioJump() {
-    if (isJumping) {
-        // Update Mario's Y translation
-        headTranslationY += currentVelocity;
-        bodyTranslationY += currentVelocity;
-        leftArmTranslationY += currentVelocity;
-        rightArmTranslationY += currentVelocity;
-        leftLegTranslationY += currentVelocity;
-        rightLegTranslationY += currentVelocity;
-
-        // Apply gravity
-        currentVelocity += gravity;
-
-        // Reset if mario has landed
-        if (headTranslationY <= 0) {
-            resetTranslationY();
-            isJumping = false;
-        }
-
-        // Collision with brick (simplified for clarity)
-        // if (translationY + mario.height >= brick.y) {
-        //     hitBrick();
-        // }
-    }
 }
 
 function resetTranslationY() {
@@ -1522,6 +1496,33 @@ function jump() {
     if (!isJumping) {
         isJumping = true;
         currentVelocity = jumpVelocity;
+    }
+}
+
+function updateMarioJump() {
+    if (isJumping) {
+        // Update Mario's Y translation
+        headTranslationY += currentVelocity;
+        bodyTranslationY += currentVelocity;
+        leftArmTranslationY += currentVelocity;
+        rightArmTranslationY += currentVelocity;
+        leftLegTranslationY += currentVelocity;
+        rightLegTranslationY += currentVelocity;
+
+        // Apply gravity
+        currentVelocity += gravity;
+
+        // Reset if mario has landed
+        if (headTranslationY <= 0) {
+            resetTranslationY();
+            isJumping = false;
+        }
+
+        // Collision with brick
+        if (headTranslationY >= -0.1) {
+            console.log("hit");
+            // hitBrick();
+        }
     }
 }
 
