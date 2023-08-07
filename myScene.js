@@ -816,6 +816,10 @@ function setBrickUniformVariables() {
     );
 }
 
+let headTranslationX = 0.0;
+let headTranslationY = 0.1;
+let headTranslationZ = 0.0;
+
 function setHeadUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -824,7 +828,7 @@ function setHeadUniformVariables() {
 
     var model = identityMatrix;
 
-    model = mult(translate(0.0, 0.1, 0.0), model);
+    model = mult(translate(headTranslationX, headTranslationY, headTranslationZ), model);
 
     model = mult(model, rotate(headRotationAngleX, [1, 0, 0]));
     model = mult(model, rotate(headRotationAngleY, [0, 1, 0]));
@@ -846,6 +850,10 @@ function setHeadUniformVariables() {
     );
 }
 
+let bodyTranslationX = 0.0;
+let bodyTranslationY = -0.18;
+let bodyTranslationZ = 0.0;
+
 function setBodyUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -855,7 +863,7 @@ function setBodyUniformVariables() {
     var model = identityMatrix;
 
     // Body's position
-    model = mult(translate(0.0, -0.18, 0.0), model);
+    model = mult(translate(bodyTranslationX, bodyTranslationY, bodyTranslationZ), model);
 
     // Body rotations
     model = mult(model, rotate(bodyRotationAngleX, [1, 0, 0]));
@@ -878,6 +886,10 @@ function setBodyUniformVariables() {
 
 }
 
+let leftArmTranslationX = -0.15;
+let leftArmTranslationY = -0.1;
+let leftArmTranslationZ = 0.0;
+
 function setLeftArmUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -887,7 +899,7 @@ function setLeftArmUniformVariables() {
     var model = identityMatrix;
 
     // Arm's position 
-    model = mult(translate(-0.15, -0.1, 0.0), model); 
+    model = mult(translate(leftArmTranslationX, leftArmTranslationY, leftArmTranslationZ), model); 
 
     // Arm rotations
     model = mult(model, rotate(leftArmRotationAngleX, [1, 0, 0]));
@@ -909,6 +921,10 @@ function setLeftArmUniformVariables() {
     );
 }
 
+let rightArmTranslationX = 0.15;
+let rightArmTranslationY = -0.1;
+let rightArmTranslationZ = 0.0;
+
 function setRightArmUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -918,7 +934,7 @@ function setRightArmUniformVariables() {
     var model = identityMatrix;
 
     // Arm's position 
-    model = mult(translate(0.15, -0.1, 0.0), model); 
+    model = mult(translate(rightArmTranslationX, rightArmTranslationY, rightArmTranslationZ), model); 
 
     // Arm rotations
     model = mult(model, rotate(rightArmRotationAngleX, [1, 0, 0]));
@@ -940,6 +956,10 @@ function setRightArmUniformVariables() {
     );
 }
 
+let rightLegTranslationX = 0.09;
+let rightLegTranslationY = -0.2;
+let rightLegTranslationZ = 0.0;
+
 function setRightLegUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -949,7 +969,7 @@ function setRightLegUniformVariables() {
     var model = identityMatrix;
 
     // Legs' position 
-    model = mult(translate(0.09, -0.2, 0.0), model);
+    model = mult(translate(rightLegTranslationX, rightLegTranslationY, rightLegTranslationZ), model);
 
     // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
@@ -970,6 +990,10 @@ function setRightLegUniformVariables() {
     );
 }
 
+let leftLegTranslationX = -0.09;
+let leftLegTranslationY = -0.2;
+let leftLegTranslationZ = 0.0;
+
 function setLeftLegUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -979,7 +1003,7 @@ function setLeftLegUniformVariables() {
     var model = identityMatrix;
 
     // Legs' position 
-    model = mult(translate(-0.09, -0.2, 0.0), model);
+    model = mult(translate(leftLegTranslationX, leftLegTranslationY, leftLegTranslationZ), model);
 
     // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
@@ -1155,7 +1179,44 @@ function render(timestamp) {
     gl.bindTexture(gl.TEXTURE_2D, legTexture);  
     gl.drawElements(gl.TRIANGLES, legData.indices.length, gl.UNSIGNED_SHORT, 0);
 
+    updateMarioJump();
+    
     requestAnimationFrame(render);
+}
+
+function updateMarioJump() {
+    if (isJumping) {
+        // Update Mario's Y translation
+        headTranslationY += currentVelocity;
+        bodyTranslationY += currentVelocity;
+        leftArmTranslationY += currentVelocity;
+        rightArmTranslationY += currentVelocity;
+        leftLegTranslationY += currentVelocity;
+        rightLegTranslationY += currentVelocity;
+
+        // Apply gravity
+        currentVelocity += gravity;
+
+        // Reset if mario has landed
+        if (headTranslationY <= 0) {
+            resetTranslationY();
+            isJumping = false;
+        }
+
+        // Collision with brick (simplified for clarity)
+        // if (translationY + mario.height >= brick.y) {
+        //     hitBrick();
+        // }
+    }
+}
+
+function resetTranslationY() {
+    headTranslationY = 0.1;
+    bodyTranslationY = -0.18;
+    leftArmTranslationY = -0.1;
+    rightArmTranslationY = -0.1;
+    leftLegTranslationY = -0.2;
+    rightLegTranslationY = -0.2;
 }
 
 function initializeContext() {
@@ -1379,13 +1440,11 @@ function setEventListeners(canvas) {
         
         previousMousePosition = { x: event.clientX, y: event.clientY };
         
-        requestAnimationFrame(render);
     }); 
 
-    document.addEventListener("keydown", function(event) {
+    window.addEventListener("keydown", function(event) {
         if (event.code === "ArrowUp") {
-            console.log("jump");
-            // jump();
+            jump();
         }
     });
 }
@@ -1452,6 +1511,18 @@ function setLightingAndMaterialUniforms(materialAmbient, materialDiffuse, materi
     gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialDiffuse"), flatten(materialDiffuse));
     gl.uniform4fv(gl.getUniformLocation(prog, "uMaterialSpecular"), flatten(materialSpecular));
     gl.uniform1f(gl.getUniformLocation(prog, "uMaterialShininess"), materialShininess);
+}
+
+let isJumping = false;
+const jumpVelocity = 0.1; 
+const gravity = -0.01;      
+let currentVelocity = 0;
+
+function jump() {
+    if (!isJumping) {
+        isJumping = true;
+        currentVelocity = jumpVelocity;
+    }
 }
 
 // Logging
