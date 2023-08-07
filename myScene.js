@@ -1148,6 +1148,9 @@ function setLeftLegUniformVariables() {
 let coinTranslationX = 0.0;
 let coinTranslationY = 0.6;
 let coinTranslationZ = 0.0;
+let coinRotationAngleX = 0.0;
+let coinRotationAngleY = 0.0;
+let coinRotationAngleZ = 90.0;
 
 function setCoinUniformVariables() { 
     const identityMatrix = mat4();
@@ -1160,9 +1163,9 @@ function setCoinUniformVariables() {
     // Coin's position
     model = mult(translate(coinTranslationX, coinTranslationY, coinTranslationZ), model);
 
-    // model = mult(model, rotate(coinRotationAngleX, [1, 0, 0]));
-    // model = mult(model, rotate(coinRotationAngleY, [0, 1, 0]));
-    // model = mult(model, rotate(coinRotationAngleZ, [0, 0, 1]));
+    model = mult(model, rotate(coinRotationAngleX, [1, 0, 0]));
+    model = mult(model, rotate(coinRotationAngleY, [0, 1, 0]));
+    model = mult(model, rotate(coinRotationAngleZ, [0, 0, 1]));
 
     const { transform, modelView } = computeTransformations(model);
     var normalMatrix = computeNormalMatrix(modelView);
