@@ -1596,6 +1596,22 @@ function setEventListeners(canvas) {
             jump();
         }
     });
+
+    // Wheel to zoom in and out
+    canvas.addEventListener("wheel", function (event) {
+        const zoomSpeed = 0.1;  
+
+        if (event.deltaY < 0) {
+            // Wheel scroll up (in)
+            orbitRadius *= (1 - zoomSpeed);
+        } else if (event.deltaY > 0) {
+            // Wheel scroll down (out)
+            orbitRadius *= (1 + zoomSpeed);
+        }
+
+        // Make sure orbitRadius doesn't go below through the target
+        orbitRadius = Math.max(orbitRadius, 1); 
+    }, {passive : true});
 }
 
 var eye = vec3(4, 2, 2);

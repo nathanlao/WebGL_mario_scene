@@ -13,6 +13,7 @@
 ## Interation
 - Press left mouse button to rotate mario's head
 - Press right mouse button to trigger orbit camera for dynamic view of the scene
+- Using wheel on mouse to zoom in and zoom out
 - Press ArrowUp to on keyboard to let Mario jump
 - If Mario's head hit the block, the block "bounce"
 - If Mario's head hit the block, the coin is revealed
