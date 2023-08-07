@@ -552,7 +552,7 @@ function createCylinderWithTopBottomData(radius, height) {
 }
 
 function createCoinData() {
-    coinData = createCylinderWithTopBottomData(0.2, 0.05);
+    coinData = createCylinderWithTopBottomData(0.18, 0.05);
 }
 
 function createPlatformBuffers() {
@@ -1146,7 +1146,7 @@ function setLeftLegUniformVariables() {
 }
 
 let coinTranslationX = 0.0;
-let coinTranslationY = 0.6;
+let coinTranslationY = 0.9;
 let coinTranslationZ = 0.0;
 let coinRotationAngleX = 0.0;
 let coinRotationAngleY = 0.0;
@@ -1354,7 +1354,8 @@ function render(timestamp) {
     gl.bindTexture(gl.TEXTURE_2D, coinTexture);
     gl.drawElements(gl.TRIANGLES, coinData.indices.length, gl.UNSIGNED_SHORT, 0);
 
-
+    updateCoinReveal();
+    
     requestAnimationFrame(render);
 }
 
@@ -1597,7 +1598,7 @@ function setEventListeners(canvas) {
     });
 }
 
-var eye = vec3(2, 2, 2);
+var eye = vec3(4, 2, 2);
 var target = vec3(0, 0, 0);
 var up = vec3(0, 1, 0);
 
@@ -1672,8 +1673,39 @@ function jump() {
         currentVelocity = jumpVelocity;
     }
 }
+
+let coinRevealStart = null;     // Coin begins its reveal animation
+let coinRevealDuration = 1000;  // Duration of the coin's reveal animation
+let coinInitialY = 0;           
+let coinJumpHeight = 0.8;      
+let coinRevealDelay = 300;  
+let coinRevealScheduled = null;
+
+function updateCoinReveal() {
+    if (coinRevealScheduled !== null && performance.now() >= coinRevealScheduled) {
+        if (coinRevealStart === null) {
+            coinRevealStart = performance.now();
+            coinInitialY = coinTranslationY;
+        }
+
+        let elapsedTime = performance.now() - coinRevealStart;
+
+        if (elapsedTime < coinRevealDuration) {
+            let progress = elapsedTime / coinRevealDuration;
+            let parabola = 4 * progress * (1 - progress);
+
+            coinTranslationY = coinInitialY + parabola * coinJumpHeight;
+        } else {
+            coinRevealStart = null;
+            coinRevealScheduled = null;
+            coinTranslationY = coinInitialY;
+        }
+    }
+}
+
 let initialBrickScale = { x: 0.4, y: 0.4, z: 0.4 };
 let hitBrickScale = { x: 0.38, y: 0.35, z: 0.38 };
+
 function updateMarioJump() {
     if (isJumping) {
         // Update Mario's Y translation
@@ -1696,6 +1728,8 @@ function updateMarioJump() {
         // Collision with brick
         if (headTranslationY >= brickTranslationY) {
             brickVelocityY = 0.01;
+            coinRevealScheduled = performance.now() + coinRevealDelay;
+            coinInitialY = coinTranslationY;
             isHit = true;
         }
     }
@@ -1710,10 +1744,15 @@ function updateBlockHit() {
         brickVelocityY -= 0.003;
 
         brickTranslationY += brickVelocityY;
+        coinTranslationY += brickVelocityY;
 
         // Reset position and velocity if the brick goes below its initial position
         if (brickTranslationY < -0.1) {
             brickTranslationY = -0.1;
+            brickVelocityY = 0;
+        }  
+        if (coinTranslationY < 0.9) { 
+            coinTranslationY = 0.9;
             brickVelocityY = 0;
         }
     }
