@@ -9,6 +9,10 @@
     - Frustum with texture mapping (mario leg)
 - Hierarchical Modeling: Representing objects as hierarchies, Mario is constructed of multiple parts (head, arms, body, legs)
 
+## Interation
+- Press left mouse button to rotate mario's head
+- Press right mouse button to trigger orbit camera for dynamic view of the scene
+
 ## Resources
 
 ### Texture image

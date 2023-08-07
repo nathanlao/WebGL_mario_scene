@@ -1309,6 +1309,9 @@ function createMarioVAOs() {
     createLegsVAO();
 }
 
+let isDragging = false; 
+let previousMousePosition = { x: 0, y: 0 }; 
+
 function setEventListeners(canvas) { 
 
     canvas.addEventListener("contextmenu", function (event) {
@@ -1348,14 +1351,57 @@ function setEventListeners(canvas) {
         document.addEventListener("mousemove", handleMouseMove);
         document.addEventListener("mouseup", handleMouseUp);
     });
+    
+    canvas.addEventListener('mousedown', (event) => {
+        if (event.button !== 2) return;
+
+        isDragging = true;
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+    });
+    
+    canvas.addEventListener('mouseup', (event) => {
+        if (event.button !== 2) return;
+
+        isDragging = false;
+    });
+    
+    canvas.addEventListener('mousemove', (event) => {
+        if (!isDragging) return;
+        
+        let deltaX = event.clientX - previousMousePosition.x;
+        let deltaY = event.clientY - previousMousePosition.y;
+        
+        // Update angles based on mouse movement
+        azimuthalAngle += deltaX * 0.005;
+        polarAngle -= deltaY * 0.005;
+        
+        polarAngle = Math.min(Math.max(0.01, polarAngle), Math.PI - 0.01);
+        
+        previousMousePosition = { x: event.clientX, y: event.clientY };
+        
+        requestAnimationFrame(render);
+    }); 
 }
 
-function computeTransformations(modelMatrix) {
-    var eye = vec3(2, 2, 2);
-    var target = vec3(0, 0, 0);
-    var up = vec3(0, 1, 0);
+var eye = vec3(2, 2, 2);
+var target = vec3(0, 0, 0);
+var up = vec3(0, 1, 0);
 
-    var view = lookAt(eye, target, up);
+let orbitRadius = length(subtract(eye, target));  
+let polarAngle = Math.acos(eye[1] / orbitRadius); 
+let azimuthalAngle = Math.atan2(eye[2], eye[0]); 
+
+function computeTransformations(modelMatrix) {
+    
+    let x = orbitRadius * Math.sin(polarAngle) * Math.cos(azimuthalAngle);
+    let y = orbitRadius * Math.cos(polarAngle);
+    let z = orbitRadius * Math.sin(polarAngle) * Math.sin(azimuthalAngle);
+
+    let newEye = vec3(x, y, z);
+    // let target = vec3(0, 0, 0);
+    // let up = vec3(0, 1, 0);
+
+    var view = lookAt(newEye, target, up);
     var modelView = mult(view, modelMatrix);
 
     var aspect = canvas.width / canvas.height;
