@@ -780,6 +780,9 @@ function setPlatformUniformVariables() {
 let brickTranslationX = 0.0;
 let brickTranslationY = -0.1;
 let brickTranslationZ = 0.0;
+let brickScaleX = 0.4;
+let brickScaleY = 0.4;
+let brickScaleZ = 0.4;
 
 function setBrickUniformVariables() { 
     const identityMatrix = mat4();
@@ -794,12 +797,7 @@ function setBrickUniformVariables() {
     model = mult(model, rotate(rotationY, [0, 1, 0]));
     model = mult(model, rotate(rotationZ, [0, 0, 1]));
 
-    // Scale factors
-    var scaleX = 0.4;
-    var scaleY = 0.4;
-    var scaleZ = 0.4;
-
-    model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
+    model = mult(scalem(brickScaleX, brickScaleY, brickScaleZ), model); // Scaling transformation
     model = mult(translate(brickTranslationX, brickTranslationY, brickTranslationZ), model); // Translation transformation
 
     const { transform, modelView } = computeTransformations(model);
@@ -1503,7 +1501,8 @@ function jump() {
         currentVelocity = jumpVelocity;
     }
 }
-
+let initialBrickScale = { x: 0.4, y: 0.4, z: 0.4 };
+let hitBrickScale = { x: 0.38, y: 0.35, z: 0.38 };
 function updateMarioJump() {
     if (isJumping) {
         // Update Mario's Y translation
