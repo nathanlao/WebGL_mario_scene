@@ -33,6 +33,8 @@ https://www.models-resource.com/3ds/amiibolottery/model/15870/
 
 https://www.mprnews.org/story/2023/03/15/itsame-marios-shoe-red-wing-makes-boots-inspired-by-video-game-character-mario
 
+https://www.textures.com/download/PBR0152/133187
+
 ### Light movement
 https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Lighting_in_WebGL
 

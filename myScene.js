@@ -1187,6 +1187,7 @@ let headTexture;
 let bodyTexture;
 let armTexture;
 let legTexture;
+let coinTexture;
 
 async function setup() {
 
@@ -1246,6 +1247,13 @@ async function setup() {
         handleTextureLoaded(legImage, legTexture); 
     }
     legImage.src = "./textureImages/leg.png"; // mario leg texture image
+
+    coinTexture = gl.createTexture();
+    let coinImage = new Image();
+    coinImage.onload = function() { 
+        handleTextureLoaded(coinImage, coinTexture); 
+    }
+    coinImage.src = "./textureImages/coin.png"; // coin texture image
 
     await loadShaders();
     compileShaders();
@@ -1339,8 +1347,8 @@ function render(timestamp) {
     // Coin rendering
     setCoinUniformVariables(); 
     gl.bindVertexArray(coinVAO);
-    // gl.activeTexture(gl.TEXTURE0); 
-    // gl.bindTexture(gl.TEXTURE_2D, coinTexture);
+    gl.activeTexture(gl.TEXTURE0); 
+    gl.bindTexture(gl.TEXTURE_2D, coinTexture);
     gl.drawElements(gl.TRIANGLES, coinData.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
