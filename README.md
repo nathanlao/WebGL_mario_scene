@@ -39,6 +39,10 @@ https://www.mprnews.org/story/2023/03/15/itsame-marios-shoe-red-wing-makes-boots
 
 https://www.textures.com/download/PBR0152/133187
 
+https://www.freepik.com/photos/mario-bros
+
+https://wallpapercave.com/w/wp9929411
+
 ### Light movement
 https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial/Lighting_in_WebGL
 

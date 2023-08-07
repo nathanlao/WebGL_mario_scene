@@ -56,6 +56,10 @@ let pipeData = {};
 let pipeVertexBuffer, pipeNormalBuffer, pipeTexCoordsBuffer, pipeIndexBuffer;
 let pipeVAO;
 
+let fireData = {};
+let fireVertexBuffer, fireNormalBuffer, fireTexCoordsBuffer, fireIndexBuffer;
+let fireVAO;
+
 let lightAngle = 0.0;
 let lightPosition = vec3(2.0, 2.0, 2.0);
 
@@ -593,6 +597,67 @@ function createPipeData() {
     pipeData = createCylinderPipeData(0.4, 1.35, 0.3)
 }
 
+// Flame
+function createFireShapeData(height, numTongues) {
+    const vertices = [];
+    const normals = [];
+    const texCoords = [];
+    
+    // Helper function to create a wavy quad, representing a single "tongue" of flame
+    function addFlameTongue(offsetX, offsetY, tongueWidth, heightFactor) {
+        const width = tongueWidth;
+        const heightVariation = Math.random() * 0.2 + 0.9; 
+        const finalHeight = height * heightFactor * heightVariation;
+        
+        // Bottom-left vertex
+        vertices.push(offsetX - width / 2, offsetY, Math.sin(offsetX) * width / 4);
+        normals.push(0, 0, 1);
+        texCoords.push(0, 0);
+
+        // Bottom-right vertex
+        vertices.push(offsetX + width / 2, offsetY, Math.sin(offsetX) * width / 4);
+        normals.push(0, 0, 1);
+        texCoords.push(1, 0);
+
+        // Top-left vertex
+        vertices.push(offsetX - width / 2, offsetY + finalHeight, Math.sin(offsetX) * width / 4);
+        normals.push(0, 0, 1);
+        texCoords.push(0, 1);
+
+        // Top-left vertex
+        vertices.push(offsetX - width / 2, offsetY + finalHeight, Math.sin(offsetX) * width / 4);
+        normals.push(0, 0, 1);
+        texCoords.push(0, 1);
+
+        // Bottom-right vertex
+        vertices.push(offsetX + width / 2, offsetY, Math.sin(offsetX) * width / 4);
+        normals.push(0, 0, 1);
+        texCoords.push(1, 0);
+
+        // Top-right vertex
+        vertices.push(offsetX + width / 2, offsetY + finalHeight, Math.sin(offsetX) * width / 4);
+        normals.push(0, 0, 1);
+        texCoords.push(1, 1);
+    }
+
+    for (let i = 0; i < numTongues; i++) {
+        const offsetX = (Math.random() - 0.5) * height * 0.5;
+        const offsetY = Math.random() * height * 0.3; 
+        const tongueWidth = (Math.random() * 0.5 + 0.5) * height * 0.3; 
+        addFlameTongue(offsetX, offsetY, tongueWidth, 0.7);
+    }
+
+    return {
+        vertices: vertices,
+        normals: normals,
+        texCoords: texCoords
+    };
+}
+
+function createFireData() {
+    fireData = createFireShapeData(1.0, 10); 
+}
+
 function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, platformPositionBuffer);
@@ -737,6 +802,20 @@ function createPipeBuffers() {
     pipeIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pipeIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pipeData.indices), gl.STATIC_DRAW);
+}
+
+function createFireBuffers() {
+    fireVertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fireData.vertices), gl.STATIC_DRAW);
+    
+    fireNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fireData.normals), gl.STATIC_DRAW);
+
+    fireTexCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireTexCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(fireData.texCoords), gl.STATIC_DRAW);
 }
 
 function createPlatformVertexArrayObjects() {
@@ -930,6 +1009,29 @@ function createPipeVao() {
 
     gl.bindVertexArray(null);
 }
+
+function createFireVao() {
+    fireVAO = gl.createVertexArray();
+    gl.bindVertexArray(fireVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireVertexBuffer);
+    let position = gl.getAttribLocation(prog, 'vPosition');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireNormalBuffer);
+    let normal = gl.getAttribLocation(prog, 'vNormal');
+    gl.enableVertexAttribArray(normal);
+    gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireTexCoordsBuffer);
+    let texCoord = gl.getAttribLocation(prog, 'vTexCoord');
+    gl.enableVertexAttribArray(texCoord);
+    gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindVertexArray(null);
+}
+
 
 function setPlatformUniformVariables() { 
     const identityMatrix = mat4();
@@ -1295,6 +1397,44 @@ function setPipeUniformVariables() {
     );
 }
 
+let fireTranslationX = -0.85; 
+let fireTranslationY = 0; 
+let fireTranslationZ = 0; 
+let fireRotationAngleX = 0; 
+let fireRotationAngleY = 0; 
+let fireRotationAngleZ = 0; 
+
+function setFireUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Fire's position
+    model = mult(translate(fireTranslationX, fireTranslationY, fireTranslationZ), model);
+
+    model = mult(model, rotate(fireRotationAngleX, [1, 0, 0]));
+    model = mult(model, rotate(fireRotationAngleY, [0, 1, 0]));
+    model = mult(model, rotate(fireRotationAngleZ, [0, 0, 1]));
+
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    setLightingAndMaterialUniforms(
+        vec4(1.0, 0.5, 0.0, 1.0),  
+        vec4(1.0, 0.6, 0.0, 1.0),  
+        vec4(1.0, 0.7, 0.1, 1.0),  
+        50.0                        
+    );
+}
+
+
 
 let platformTexture;
 let brickTexture;
@@ -1304,6 +1444,7 @@ let armTexture;
 let legTexture;
 let coinTexture;
 let pipeTexture;
+let fireTexture;
 
 async function setup() {
 
@@ -1316,12 +1457,14 @@ async function setup() {
     createMarioData();
     createCoinData();
     createPipeData();
+    createFireData();
 
     createPlatformBuffers();
     createBrickBuffers();
     createMarioBuffers();
     createCoinBuffers();
     createPipeBuffers();
+    createFireBuffers();
 
     // 3. Load texture image
     platformTexture = gl.createTexture();
@@ -1380,6 +1523,12 @@ async function setup() {
     }
     pipeImage.src = "./textureImages/pipe.png"; // pipe texture image
 
+    fireTexture = gl.createTexture();
+    let fireImage = new Image();
+    fireImage.onload = function() { 
+        handleTextureLoaded(fireImage, fireTexture); 
+    }
+    fireImage.src = "./textureImages/fire.png"; // fire texture image
 
     await loadShaders();
     compileShaders();
@@ -1389,6 +1538,7 @@ async function setup() {
     createMarioVAOs();
     createCoinVao();
     createPipeVao();
+    createFireVao();
 
     requestAnimationFrame(render);
 }
@@ -1486,6 +1636,13 @@ function render(timestamp) {
     gl.activeTexture(gl.TEXTURE0); 
     gl.bindTexture(gl.TEXTURE_2D, pipeTexture);
     gl.drawElements(gl.TRIANGLES, pipeData.indices.length, gl.UNSIGNED_SHORT, 0);
+
+    // Fire rendering
+    setFireUniformVariables(); 
+    gl.bindVertexArray(fireVAO);
+    gl.activeTexture(gl.TEXTURE0);  
+    gl.bindTexture(gl.TEXTURE_2D, fireTexture);
+    gl.drawArrays(gl.TRIANGLES, 0, fireData.vertices.length / 3);
     
     requestAnimationFrame(render);
 }
