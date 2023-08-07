@@ -796,7 +796,7 @@ function setBrickUniformVariables() {
     var scaleZ = 0.4;
 
     model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
-    model = mult(translate(0.0, 0.1, 0.0), model); // Translation transformation
+    model = mult(translate(0.0, -0.1, 0.0), model); // Translation transformation
 
     const { transform, modelView } = computeTransformations(model);
     var normalMatrix = computeNormalMatrix(modelView);
@@ -824,7 +824,7 @@ function setHeadUniformVariables() {
 
     var model = identityMatrix;
 
-    model = mult(translate(0.0, 0.5, 0.0), model);
+    model = mult(translate(0.0, 0.1, 0.0), model);
 
     model = mult(model, rotate(headRotationAngleX, [1, 0, 0]));
     model = mult(model, rotate(headRotationAngleY, [0, 1, 0]));
@@ -855,7 +855,7 @@ function setBodyUniformVariables() {
     var model = identityMatrix;
 
     // Body's position
-    model = mult(translate(0.0, 0.25, 0.0), model);
+    model = mult(translate(0.0, -0.18, 0.0), model);
 
     // Body rotations
     model = mult(model, rotate(bodyRotationAngleX, [1, 0, 0]));
@@ -887,7 +887,7 @@ function setLeftArmUniformVariables() {
     var model = identityMatrix;
 
     // Arm's position 
-    model = mult(translate(-0.15, 0.3, 0.0), model); 
+    model = mult(translate(-0.15, -0.1, 0.0), model); 
 
     // Arm rotations
     model = mult(model, rotate(leftArmRotationAngleX, [1, 0, 0]));
@@ -918,7 +918,7 @@ function setRightArmUniformVariables() {
     var model = identityMatrix;
 
     // Arm's position 
-    model = mult(translate(0.15, 0.3, 0.0), model); 
+    model = mult(translate(0.15, -0.1, 0.0), model); 
 
     // Arm rotations
     model = mult(model, rotate(rightArmRotationAngleX, [1, 0, 0]));
@@ -949,7 +949,7 @@ function setRightLegUniformVariables() {
     var model = identityMatrix;
 
     // Legs' position 
-    model = mult(translate(0.09, 0.23, 0.0), model);
+    model = mult(translate(0.09, -0.2, 0.0), model);
 
     // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
@@ -979,7 +979,7 @@ function setLeftLegUniformVariables() {
     var model = identityMatrix;
 
     // Legs' position 
-    model = mult(translate(-0.09, 0.23, 0.0), model);
+    model = mult(translate(-0.09, -0.2, 0.0), model);
 
     // model = mult(model, rotate(legRotationAngleX, [1, 0, 0]));
     // model = mult(model, rotate(legRotationAngleY, [0, 1, 0]));
