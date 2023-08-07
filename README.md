@@ -1,24 +1,31 @@
-## Concepts used
+## Interation
+- Press left mouse button to rotate mario's head
+- Press right mouse button to trigger orbit camera for dynamic view of the scene
+- Using wheel on mouse to zoom in and zoom out
+- Press ArrowUp to on keyboard to let Mario jump
+- Mario's arms wave
+- If Mario's head hit the block, the block "bounce"
+- If Mario's head hit the block, the coin is revealed
+- Fire sways and flows continuously in the pipe
+
+## Concepts used (Without using three.js)
 - Enable Multisample Anti-Aliasing (MSAA) to smooth out jagged edges
+- Viewing and Projection: Camera viewer is in relation to the scene
 - Scaling transformation (platfrom, brick)
-- Rotation transformation (brick, mario)
-- Texture mapping (platform, brick, mario, coin, pipe, fire)
-- lighting and shading (platform, brick, mario)
+- Rotation transformation (brick, mario, coin, fire)
+- Texture mapping, UV Coordinates (platform, brick, mario, coin, pipe, fire)
+- lighting calculations (phong light model) and shading (All scene: platform, brick, mario, coin, pipe, fire)
+- Hierarchical Modeling: Representing objects as hierarchies, Mario is constructed of multiple parts (head, arms, body, legs)
 - Complex Objects and Meshes:
     - Sphere with uv mapping (mario head)
     - Cylinder with texture mapping (mario body and arms)
     - Cylinder With top and bottom caps (Coin)
     - Cylinder with a wider flange on top (pipe)
     - Frustum with texture mapping (mario leg)
-- Hierarchical Modeling: Representing objects as hierarchies, Mario is constructed of multiple parts (head, arms, body, legs)
-
-## Interation
-- Press left mouse button to rotate mario's head
-- Press right mouse button to trigger orbit camera for dynamic view of the scene
-- Using wheel on mouse to zoom in and zoom out
-- Press ArrowUp to on keyboard to let Mario jump
-- If Mario's head hit the block, the block "bounce"
-- If Mario's head hit the block, the coin is revealed
+    - Create a wavy quad, representing a single "tongue" of flame (fire)
+- Depth Testing (Z-buffer Algorithm): When rendering objects in 3D space, I made use of depth testing. Thats is, pixel's depth value is checked against a stored value to determine visibility
+- Vertex Manipulation for Animation: The "flowing" effect for the fire, where I modified vertex positions based on sine functions
+- Collision Detection: Mario's head and the block
 
 ## Resources
 
