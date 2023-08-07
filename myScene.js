@@ -1381,6 +1381,13 @@ function setEventListeners(canvas) {
         
         requestAnimationFrame(render);
     }); 
+
+    document.addEventListener("keydown", function(event) {
+        if (event.code === "ArrowUp") {
+            console.log("jump");
+            // jump();
+        }
+    });
 }
 
 var eye = vec3(2, 2, 2);
