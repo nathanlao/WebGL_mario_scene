@@ -777,6 +777,10 @@ function setPlatformUniformVariables() {
     gl.uniform1i(uTextureLocation, 0);
 }
 
+let brickTranslationX = 0.0;
+let brickTranslationY = -0.1;
+let brickTranslationZ = 0.0;
+
 function setBrickUniformVariables() { 
     const identityMatrix = mat4();
 
@@ -796,7 +800,7 @@ function setBrickUniformVariables() {
     var scaleZ = 0.4;
 
     model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
-    model = mult(translate(0.0, -0.1, 0.0), model); // Translation transformation
+    model = mult(translate(brickTranslationX, brickTranslationY, brickTranslationZ), model); // Translation transformation
 
     const { transform, modelView } = computeTransformations(model);
     var normalMatrix = computeNormalMatrix(modelView);
@@ -1180,6 +1184,7 @@ function render(timestamp) {
     gl.drawElements(gl.TRIANGLES, legData.indices.length, gl.UNSIGNED_SHORT, 0);
 
     updateMarioJump();
+    updateBlockHit();
 
     requestAnimationFrame(render);
 }
@@ -1519,9 +1524,27 @@ function updateMarioJump() {
         }
 
         // Collision with brick
-        if (headTranslationY >= -0.1) {
-            console.log("hit");
-            // hitBrick();
+        if (headTranslationY >= brickTranslationY) {
+            brickVelocityY = 0.01;
+            isHit = true;
+        }
+    }
+}
+
+let isHit = false;
+let brickVelocityY = 0;
+
+function updateBlockHit() {
+    if (isHit) {
+        // Apply gravity
+        brickVelocityY -= 0.003;
+
+        brickTranslationY += brickVelocityY;
+
+        // Reset position and velocity if the brick goes below its initial position
+        if (brickTranslationY < -0.1) {
+            brickTranslationY = -0.1;
+            brickVelocityY = 0;
         }
     }
 }
