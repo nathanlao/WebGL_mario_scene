@@ -561,7 +561,7 @@ function createCoinData() {
 
 // Pipe
 function createCylinderPipeData(bodyRadius, bodyHeight, flangeHeight) {
-    const flangeRadius = bodyRadius * 1.2;
+    const flangeRadius = bodyRadius * 1.3;
 
     // Main body of the pipe
     const mainCylinder = createCylinderWithTopBottomData(bodyRadius, bodyHeight - flangeHeight);
@@ -590,7 +590,7 @@ function createCylinderPipeData(bodyRadius, bodyHeight, flangeHeight) {
 }
 
 function createPipeData() { 
-    pipeData = createCylinderPipeData(0.4, 1.2, 0.3)
+    pipeData = createCylinderPipeData(0.4, 1.35, 0.3)
 }
 
 function createPlatformBuffers() {
@@ -944,9 +944,9 @@ function setPlatformUniformVariables() {
     model = mult(model, rotate(platformRotationZ, [0, 0, 1]));
 
     // Scale factors for x, y, and z
-    var scaleX = 2.5;
+    var scaleX = 3.0;
     var scaleY = 0.1;
-    var scaleZ = 1.5; 
+    var scaleZ = 2.0; 
 
     model = mult(scalem(scaleX, scaleY, scaleZ), model); // Scaling transformation
 
@@ -1303,6 +1303,7 @@ let bodyTexture;
 let armTexture;
 let legTexture;
 let coinTexture;
+let pipeTexture;
 
 async function setup() {
 
@@ -1371,6 +1372,14 @@ async function setup() {
         handleTextureLoaded(coinImage, coinTexture); 
     }
     coinImage.src = "./textureImages/coin.png"; // coin texture image
+
+    pipeTexture = gl.createTexture();
+    let pipeImage = new Image();
+    pipeImage.onload = function() { 
+        handleTextureLoaded(pipeImage, pipeTexture); 
+    }
+    pipeImage.src = "./textureImages/pipe.png"; // pipe texture image
+
 
     await loadShaders();
     compileShaders();
@@ -1474,8 +1483,8 @@ function render(timestamp) {
     // Pipe rendering
     setPipeUniformVariables(); 
     gl.bindVertexArray(pipeVAO);
-    // gl.activeTexture(gl.TEXTURE0); 
-    // gl.bindTexture(gl.TEXTURE_2D, PipeTexture);
+    gl.activeTexture(gl.TEXTURE0); 
+    gl.bindTexture(gl.TEXTURE_2D, pipeTexture);
     gl.drawElements(gl.TRIANGLES, pipeData.indices.length, gl.UNSIGNED_SHORT, 0);
     
     requestAnimationFrame(render);
