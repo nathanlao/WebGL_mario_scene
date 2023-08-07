@@ -7,6 +7,7 @@
     - Sphere with uv mapping (mario head)
     - Cylinder with texture mapping (mario body and arms)
     - Cylinder With top and bottom caps (Coin)
+    - Cylinder with a wider flange on top (pipe)
     - Frustum with texture mapping (mario leg)
 - Hierarchical Modeling: Representing objects as hierarchies, Mario is constructed of multiple parts (head, arms, body, legs)
 

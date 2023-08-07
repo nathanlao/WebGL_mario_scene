@@ -52,6 +52,10 @@ let coinData = {};
 let coinVertexBuffer, coinNormalBuffer, coinTexCoordsBuffer, coinIndexBuffer;
 let coinVAO;
 
+let pipeData = {};
+let pipeVertexBuffer, pipeNormalBuffer, pipeTexCoordsBuffer, pipeIndexBuffer;
+let pipeVAO;
+
 let lightAngle = 0.0;
 let lightPosition = vec3(2.0, 2.0, 2.0);
 
@@ -555,6 +559,40 @@ function createCoinData() {
     coinData = createCylinderWithTopBottomData(0.18, 0.05);
 }
 
+// Pipe
+function createCylinderPipeData(bodyRadius, bodyHeight, flangeHeight) {
+    const flangeRadius = bodyRadius * 1.2;
+
+    // Main body of the pipe
+    const mainCylinder = createCylinderWithTopBottomData(bodyRadius, bodyHeight - flangeHeight);
+
+    // Flange
+    const flangeCylinder = createCylinderWithTopBottomData(flangeRadius, flangeHeight);
+    for (let i = 0; i < flangeCylinder.vertices.length; i+=3) {
+        flangeCylinder.vertices[i + 1] += (bodyHeight - flangeHeight) / 2;
+    }
+
+    // Combine the two
+    const pipeData = {
+        vertices: mainCylinder.vertices.concat(flangeCylinder.vertices),
+        normals: mainCylinder.normals.concat(flangeCylinder.normals),
+        texCoords: mainCylinder.texCoords.concat(flangeCylinder.texCoords),
+        indices: []
+    };
+
+    for (let i = 0; i < flangeCylinder.indices.length; i++) {
+        pipeData.indices.push(flangeCylinder.indices[i] + mainCylinder.vertices.length / 3);
+    }
+
+    pipeData.indices = mainCylinder.indices.concat(pipeData.indices);
+
+    return pipeData;
+}
+
+function createPipeData() { 
+    pipeData = createCylinderPipeData(0.4, 1.2, 0.3)
+}
+
 function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, platformPositionBuffer);
@@ -681,6 +719,24 @@ function createCoinBuffers() {
     coinIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, coinIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(coinData.indices), gl.STATIC_DRAW);
+}
+
+function createPipeBuffers() {
+    pipeVertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pipeVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pipeData.vertices), gl.STATIC_DRAW);
+    
+    pipeNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pipeNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pipeData.normals), gl.STATIC_DRAW);
+
+    pipeTexCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, pipeTexCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pipeData.texCoords), gl.STATIC_DRAW);
+
+    pipeIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pipeIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(pipeData.indices), gl.STATIC_DRAW);
 }
 
 function createPlatformVertexArrayObjects() {
@@ -854,6 +910,26 @@ function createCoinVao() {
     gl.bindVertexArray(null);
 }
 
+function createPipeVao() {
+    pipeVAO = gl.createVertexArray();
+    gl.bindVertexArray(pipeVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, pipeVertexBuffer);
+    gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, pipeNormalBuffer);
+    gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(1);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, pipeTexCoordsBuffer);
+    gl.vertexAttribPointer(2, 2, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(2);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, pipeIndexBuffer);
+
+    gl.bindVertexArray(null);
+}
 
 function setPlatformUniformVariables() { 
     const identityMatrix = mat4();
@@ -1182,6 +1258,42 @@ function setCoinUniformVariables() {
     );
 }
 
+let pipeTranslationX = -0.9; 
+let pipeTranslationY = 0; 
+let pipeTranslationZ = 0; 
+let pipeRotationAngleX = 0; 
+let pipeRotationAngleY = 0; 
+let pipeRotationAngleZ = 0; 
+
+function setPipeUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Pipe's position
+    model = mult(translate(pipeTranslationX, pipeTranslationY, pipeTranslationZ), model);
+
+    model = mult(model, rotate(pipeRotationAngleX, [1, 0, 0]));
+    model = mult(model, rotate(pipeRotationAngleY, [0, 1, 0]));
+    model = mult(model, rotate(pipeRotationAngleZ, [0, 0, 1]));
+
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    setLightingAndMaterialUniforms(
+        vec4(0.2, 0.5, 0.2, 1.0), 
+        vec4(0.3, 0.6, 0.3, 1.0), 
+        vec4(0.4, 0.7, 0.4, 1.0), 
+        50.0                        
+    );
+}
 
 
 let platformTexture;
@@ -1202,11 +1314,13 @@ async function setup() {
     createBrickData();
     createMarioData();
     createCoinData();
+    createPipeData();
 
     createPlatformBuffers();
     createBrickBuffers();
     createMarioBuffers();
     createCoinBuffers();
+    createPipeBuffers();
 
     // 3. Load texture image
     platformTexture = gl.createTexture();
@@ -1265,6 +1379,7 @@ async function setup() {
     createBrickVertexArrayObjects();
     createMarioVAOs();
     createCoinVao();
+    createPipeVao();
 
     requestAnimationFrame(render);
 }
@@ -1355,6 +1470,13 @@ function render(timestamp) {
     gl.drawElements(gl.TRIANGLES, coinData.indices.length, gl.UNSIGNED_SHORT, 0);
 
     updateCoinReveal();
+
+    // Pipe rendering
+    setPipeUniformVariables(); 
+    gl.bindVertexArray(pipeVAO);
+    // gl.activeTexture(gl.TEXTURE0); 
+    // gl.bindTexture(gl.TEXTURE_2D, PipeTexture);
+    gl.drawElements(gl.TRIANGLES, pipeData.indices.length, gl.UNSIGNED_SHORT, 0);
     
     requestAnimationFrame(render);
 }
