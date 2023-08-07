@@ -48,6 +48,10 @@ let legData = {};
 let legVertexBuffer, legNormalBuffer, legTexCoordsBuffer, legIndexBuffer;
 let legVAO;
 
+let coinData = {};
+let coinVertexBuffer, coinNormalBuffer, coinTexCoordsBuffer, coinIndexBuffer;
+let coinVAO;
+
 let lightAngle = 0.0;
 let lightPosition = vec3(2.0, 2.0, 2.0);
 
@@ -477,6 +481,79 @@ function createFrustumData(topRadius, bottomRadius, height, slices = 30) {
     return frustumData;
 }
 
+// Coin
+function createCylinderWithTopBottomData(radius, height) {
+    var cylinderData = {
+        vertices: [],
+        normals: [],
+        texCoords: [],
+        indices: []
+    };
+
+    var slices = 30;
+
+    for (var i = 0; i <= slices; i++) {
+        var theta = i * 2 * Math.PI / slices;
+        var sinTheta = Math.sin(theta);
+        var cosTheta = Math.cos(theta);
+
+        var x = cosTheta;
+        var z = sinTheta;
+        var u = i / slices;
+
+        // Top circle
+        cylinderData.vertices.push(radius * x, height / 2, radius * z);
+        cylinderData.normals.push(x, 0, z);
+        cylinderData.texCoords.push(u, 0);
+
+        // Bottom circle
+        cylinderData.vertices.push(radius * x, -height / 2, radius * z);
+        cylinderData.normals.push(x, 0, z);
+        cylinderData.texCoords.push(u, 1);
+    }
+
+    // Creating the cylinder's indices for the side
+    for (i = 0; i < slices; i++) {
+        var top1 = i * 2;
+        var top2 = (i + 1) * 2;
+        var bottom1 = (i * 2) + 1;
+        var bottom2 = ((i + 1) * 2) + 1;
+
+        // Two triangles for the quad
+        cylinderData.indices.push(top1, bottom1, top2);
+        cylinderData.indices.push(top2, bottom1, bottom2);
+    }
+
+    // Top and bottom end caps
+    cylinderData.vertices.push(0, height / 2, 0);
+    cylinderData.normals.push(0, 1, 0);
+    cylinderData.texCoords.push(0.5, 0.5);
+
+    cylinderData.vertices.push(0, -height / 2, 0);
+    cylinderData.normals.push(0, -1, 0);
+    cylinderData.texCoords.push(0.5, 0.5);
+
+    var topCenterIndex = slices * 2 + 2;
+    var bottomCenterIndex = topCenterIndex + 1;
+
+    for (i = 0; i < slices; i++) {
+        var topIndex = i * 2;
+        var nextTopIndex = (i + 1) * 2;
+
+        cylinderData.indices.push(topCenterIndex, nextTopIndex, topIndex);
+
+        var bottomIndex = (i * 2) + 1;
+        var nextBottomIndex = ((i + 1) * 2) + 1;
+
+        cylinderData.indices.push(bottomCenterIndex, bottomIndex, nextBottomIndex);
+    }
+
+    return cylinderData;
+}
+
+function createCoinData() {
+    coinData = createCylinderWithTopBottomData(0.2, 0.05);
+}
 
 function createPlatformBuffers() {
     platformPositionBuffer = gl.createBuffer();
@@ -586,6 +663,24 @@ function createLegsBuffers() {
     legIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, legIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(legData.indices), gl.STATIC_DRAW);
+}
+
+function createCoinBuffers() {
+    coinVertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, coinVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coinData.vertices), gl.STATIC_DRAW);
+    
+    coinNormalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, coinNormalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coinData.normals), gl.STATIC_DRAW);
+
+    coinTexCoordsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, coinTexCoordsBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(coinData.texCoords), gl.STATIC_DRAW);
+
+    coinIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, coinIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(coinData.indices), gl.STATIC_DRAW);
 }
 
 function createPlatformVertexArrayObjects() {
@@ -731,6 +826,30 @@ function createLegsVAO() {
     gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 0, 0);
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, legIndexBuffer);
+
+    gl.bindVertexArray(null);
+}
+
+function createCoinVao() {
+    coinVAO = gl.createVertexArray();
+    gl.bindVertexArray(coinVAO);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, coinVertexBuffer);
+    let position = gl.getAttribLocation(prog, 'vPosition');
+    gl.enableVertexAttribArray(position);
+    gl.vertexAttribPointer(position, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, coinNormalBuffer);
+    let normal = gl.getAttribLocation(prog, 'vNormal');
+    gl.enableVertexAttribArray(normal);
+    gl.vertexAttribPointer(normal, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, coinTexCoordsBuffer);
+    let texCoord = gl.getAttribLocation(prog, 'vTexCoord');
+    gl.enableVertexAttribArray(texCoord);
+    gl.vertexAttribPointer(texCoord, 2, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, coinIndexBuffer);
 
     gl.bindVertexArray(null);
 }
@@ -1026,6 +1145,40 @@ function setLeftLegUniformVariables() {
     );
 }
 
+let coinTranslationX = 0.0;
+let coinTranslationY = 0.6;
+let coinTranslationZ = 0.0;
+
+function setCoinUniformVariables() { 
+    const identityMatrix = mat4();
+
+    gl.useProgram(prog);
+    var transform_loc = gl.getUniformLocation(prog, "transform");
+
+    var model = identityMatrix;
+
+    // Coin's position
+    model = mult(translate(coinTranslationX, coinTranslationY, coinTranslationZ), model);
+
+    // model = mult(model, rotate(coinRotationAngleX, [1, 0, 0]));
+    // model = mult(model, rotate(coinRotationAngleY, [0, 1, 0]));
+    // model = mult(model, rotate(coinRotationAngleZ, [0, 0, 1]));
+
+    const { transform, modelView } = computeTransformations(model);
+    var normalMatrix = computeNormalMatrix(modelView);
+
+    gl.uniformMatrix4fv(transform_loc, false, flatten(transform));
+    gl.uniformMatrix4fv(gl.getUniformLocation(prog, "modelView"), false, flatten(modelView));
+    gl.uniformMatrix3fv(gl.getUniformLocation(prog, "normalMatrix"), false, flatten(normalMatrix));
+
+    setLightingAndMaterialUniforms(
+        vec4(0.9, 0.7, 0.1, 1.0),   
+        vec4(1.0, 0.9, 0.2, 1.0), 
+        vec4(1.0, 0.95, 0.3, 1.0),  
+        50.0                        
+    );
+}
+
 
 
 let platformTexture;
@@ -1043,13 +1196,13 @@ async function setup() {
     
     createPlatformData();
     createBrickData();
-    // 1.
     createMarioData();
+    createCoinData();
 
     createPlatformBuffers();
     createBrickBuffers();
-    // 2. 
     createMarioBuffers();
+    createCoinBuffers();
 
     // 3. Load texture image
     platformTexture = gl.createTexture();
@@ -1099,8 +1252,8 @@ async function setup() {
 
     createPlatformVertexArrayObjects();
     createBrickVertexArrayObjects();
-    // 4.
     createMarioVAOs();
+    createCoinVao();
 
     requestAnimationFrame(render);
 }
@@ -1115,7 +1268,6 @@ function render(timestamp) {
 
     // updateLightAnimate();
 
-    // 4. 
     // Platform rendering
     setPlatformUniformVariables();
     gl.bindVertexArray(platformVAO);
@@ -1183,6 +1335,14 @@ function render(timestamp) {
 
     updateMarioJump();
     updateBlockHit();
+
+    // Coin rendering
+    setCoinUniformVariables(); 
+    gl.bindVertexArray(coinVAO);
+    // gl.activeTexture(gl.TEXTURE0); 
+    // gl.bindTexture(gl.TEXTURE_2D, coinTexture);
+    gl.drawElements(gl.TRIANGLES, coinData.indices.length, gl.UNSIGNED_SHORT, 0);
+
 
     requestAnimationFrame(render);
 }
