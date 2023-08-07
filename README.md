@@ -12,6 +12,7 @@
 ## Interation
 - Press left mouse button to rotate mario's head
 - Press right mouse button to trigger orbit camera for dynamic view of the scene
+- Press ArrowUp to on keyboard to let Mario jump
 
 ## Resources
 
