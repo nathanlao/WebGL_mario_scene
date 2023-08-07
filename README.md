@@ -15,6 +15,7 @@
 - Press right mouse button to trigger orbit camera for dynamic view of the scene
 - Press ArrowUp to on keyboard to let Mario jump
 - If Mario's head hit the block, the block "bounce"
+- If Mario's head hit the block, the coin is revealed
 
 ## Resources
 
