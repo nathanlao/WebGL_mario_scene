@@ -1397,8 +1397,8 @@ function setPipeUniformVariables() {
     );
 }
 
-let fireTranslationX = -0.85; 
-let fireTranslationY = 0; 
+let fireTranslationX = -0.9; 
+let fireTranslationY = 0.33; 
 let fireTranslationZ = 0; 
 let fireRotationAngleX = 0; 
 let fireRotationAngleY = 0; 
@@ -1540,6 +1540,9 @@ async function setup() {
     createPipeVao();
     createFireVao();
 
+    // Initialize the original vertices
+    fireData.originalVertices = fireData.vertices.slice();
+
     requestAnimationFrame(render);
 }
 
@@ -1643,6 +1646,8 @@ function render(timestamp) {
     gl.activeTexture(gl.TEXTURE0);  
     gl.bindTexture(gl.TEXTURE_2D, fireTexture);
     gl.drawArrays(gl.TRIANGLES, 0, fireData.vertices.length / 3);
+
+    animateFire(timestamp);
     
     requestAnimationFrame(render);
 }
@@ -2079,6 +2084,31 @@ function updateBlockHit() {
             brickVelocityY = 0;
         }
     }
+}
+
+let startTime = null;
+const waveFrequency = 0.01; 
+const waveAmplitude = 0.05; 
+const rotationSpeed = 0.4;  
+const maxRotationAngle = 10; 
+
+function animateFire(timestamp) {
+    if (!startTime) startTime = timestamp;
+    const elapsedTime = timestamp - startTime;
+
+    // Apply the sway effect
+    fireRotationAngleY = maxRotationAngle * Math.sin(rotationSpeed * elapsedTime);
+
+    // Apply the wave effect
+    for (let i = 0; i < fireData.vertices.length; i += 3) {
+        const originalY = fireData.originalVertices[i + 1];
+        fireData.vertices[i + 1] = originalY + waveAmplitude * Math.sin(waveFrequency * elapsedTime + fireData.vertices[i]);
+
+    }
+
+    // Update the vertex buffer
+    gl.bindBuffer(gl.ARRAY_BUFFER, fireVertexBuffer);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, new Float32Array(fireData.vertices));
 }
 
 // Logging
