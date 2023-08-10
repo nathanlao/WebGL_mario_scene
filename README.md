@@ -1,4 +1,4 @@
-## Interation
+## Interaction
 - Press left mouse button to rotate mario's head
 - Press right mouse button to trigger orbit camera for dynamic view of the scene
 - Using wheel on mouse to zoom in and zoom out
